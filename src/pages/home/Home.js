@@ -103,7 +103,7 @@ const Home = () => {
                                 left: 20,
                                 fontStyle: "normal",
                                 fontWeight: "400",
-                                fontSize: isMobile ? "11px" : "13px",
+                                fontSize: isMobile ? "12px" : "13px",
                                 fontFamily: "Poppins",
                               }}
                             >
@@ -157,7 +157,7 @@ const Home = () => {
                               alignItems: "flex-end",
                             }}
                           >
-                            <QuranIcon width={isMobile ? "110" : "173"} height={isMobile ? "62" : "97"} />
+                            <QuranIcon width={isMobile ? "120" : "173"} height={isMobile ? "90" : "97"} />
                           </div>
                         </Card>
                       </Grid>
