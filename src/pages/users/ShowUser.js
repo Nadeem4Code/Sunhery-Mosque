@@ -27,7 +27,6 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import Slide from "@mui/material/Slide";
 
 // Search
@@ -174,24 +173,25 @@ function ShowUser() {
                 {tasks
                   .filter((post) => {
                     if (query === "") {
-                      return post;
+                      return true;
                     } else if (
                       post.userName.toLowerCase().includes(query.toLowerCase())
                     ) {
-                      return post;
+                      return true;
                     } else if (
                       post.fatherName
                         .toLowerCase()
                         .includes(query.toLowerCase())
                     ) {
-                      return post;
+                      return true;
                     } else if (
                       post.phoneNumber
                         .toLowerCase()
                         .includes(query.toLowerCase())
                     ) {
-                      return post;
+                      return true;
                     }
+                    return false;
                   })
                   .map((task, index) => (
                     <Grid key={task.id} item xs={12} md={6} sm={12}>
@@ -330,7 +330,6 @@ function ShowUser() {
 function TaskEditForm({ task, onSave, open, setOpen, editingTask }) {
   // Initialize editedData state with the task prop
   const [editedData, setEditedData] = useState(task);
-  const [updatedData, setUpdatedData] = useState(task);
   const [isError, setIsError] = useState(false);
 
   const handleInputChange = (e) => {

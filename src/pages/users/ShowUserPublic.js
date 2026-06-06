@@ -29,7 +29,6 @@ import { getAllTasks } from "../../config/firebase";
 function ShowUserPublic() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
 
   useEffect(() => {
@@ -42,7 +41,6 @@ function ShowUserPublic() {
         })
         .catch((error) => {
           console.error("Error fetching tasks:", error);
-          setError(error);
           setLoading(false);
         });
     }, 0.5);
@@ -134,24 +132,25 @@ function ShowUserPublic() {
                 {books
                   .filter((post) => {
                     if (query === "") {
-                      return post;
+                      return true;
                     } else if (
                       post.userName.toLowerCase().includes(query.toLowerCase())
                     ) {
-                      return post;
+                      return true;
                     } else if (
                       post.fatherName
                         .toLowerCase()
                         .includes(query.toLowerCase())
                     ) {
-                      return post;
+                      return true;
                     } else if (
                       post.phoneNumber
                         .toLowerCase()
                         .includes(query.toLowerCase())
                     ) {
-                      return post;
+                      return true;
                     }
+                    return false;
                   })
                   .map((book) => (
                     <Grid key={book.id} item xs={12} md={6} sm={12}>

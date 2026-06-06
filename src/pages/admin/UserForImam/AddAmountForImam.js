@@ -22,12 +22,9 @@ import { getTaskById, updateTask } from "../../../config/firebase";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import CreateUser from "../../../components/users/CreateUser";
 import Typography from "@mui/material/Typography";
 
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import Avatar from "@mui/material/Avatar";
-import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import Button from "@mui/material/Button";
 
 import Slide from "@mui/material/Slide";

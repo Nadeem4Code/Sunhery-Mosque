@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import {
-  Grid,
   Card,
   CardContent,
   Typography,
-  TextField,
   Button,
 } from "@mui/material";
 
@@ -19,7 +17,7 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [user, loading, error] = useAuthState(auth);
+  const [user, loading] = useAuthState(auth);
 
   const navigate = useNavigate();
   const register = () => {
@@ -30,7 +28,7 @@ const Register = () => {
   useEffect(() => {
     if (loading) return;
     if (user) navigate("/dashboard");
-  }, [user, loading]);
+  }, [user, loading, navigate]);
   return (
     <div
       style={{
@@ -104,6 +102,7 @@ const Register = () => {
             >
               <img
                 src="/icons/google.svg"
+                alt="Google"
                 style={{
                   width: "15.37px",
                   height: "15.37px",
@@ -132,6 +131,7 @@ const Register = () => {
             >
               <img
                 src="/icons/apple.svg"
+                alt="Apple"
                 style={{
                   width: "15.37px",
                   height: "15.37px",

@@ -6,7 +6,7 @@ import Grid from "@mui/material/Grid";
 import FivePillars from "../../components/mosque/FivePillars";
 
 // Importing the react router
-import { NavLink, Outlet } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 
 // List
 

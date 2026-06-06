@@ -1,7 +1,7 @@
-import React,{useState,useEffect} from "react";
+import React from "react";
 import { Grid, Card, CardContent, Typography, Avatar } from "@mui/material";
 
-import { getAllTasks } from "../../config/firebase";
+
 
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
@@ -10,7 +10,6 @@ import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import AmountSpendUsers from "../../components/admin/AmountSpendUsers";
 import { NavLink } from "react-router-dom";
 import AddUser from "./AddUser";
-import { useAuthState } from "react-firebase-hooks/auth";
 const Dashboard = () => {
 
  

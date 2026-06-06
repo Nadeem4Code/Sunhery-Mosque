@@ -1,17 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Grid, Card, CardContent, Typography, Button } from "@mui/material";
+import { Card, CardContent, Typography, Button } from "@mui/material";
 
 import { Link, useNavigate } from "react-router-dom";
 import TextField from "@mui/material/TextField";
 
-import gradient from "../../assets/icons/gradient.svg";
 
 import { auth, logInWithEmailAndPassword } from "../../config/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [user, loading, error] = useAuthState(auth);
+  const [user, loading] = useAuthState(auth);
 
   const navigate = useNavigate();
 
@@ -20,7 +19,7 @@ const Login = () => {
       return;
     }
     if (user) navigate("/dashboard");
-  }, [user, loading]);
+  }, [user, loading, navigate]);
 
   return (
     <>
