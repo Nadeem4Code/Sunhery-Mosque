@@ -51,24 +51,25 @@ const NextPrayerCard = () => {
       const now = new Date();
       const currentHour = now.getHours();
       const currentMinute = now.getMinutes();
-      const currentTimeInMinutes = currentHour * 60 + currentMinute;
+      const currentSecond = now.getSeconds();
+      const currentTimeInSeconds = currentHour * 3600 + currentMinute * 60 + currentSecond;
 
       const prayers = [
-        { name: "Fajar", timeStr: "5:40 AM", timeInMinutes: 5 * 60 + 40, arabic: "فجر" },
-        { name: "Zohar", timeStr: "1:30 PM", timeInMinutes: 13 * 60 + 30, arabic: "زوهر" },
-        { name: "Asar", timeStr: "5:30 PM", timeInMinutes: 17 * 60 + 30, arabic: "اثر" },
-        { name: "Maghrib", timeStr: "7:10 PM", timeInMinutes: 19 * 60 + 10, arabic: "مغرب" },
-        { name: "Isha", timeStr: "8:30 PM", timeInMinutes: 20 * 60 + 30, arabic: "عشا" },
+        { name: "Fajar", timeStr: "5:40 AM", timeInSeconds: (5 * 60 + 40) * 60, arabic: "فجر" },
+        { name: "Zohar", timeStr: "1:30 PM", timeInSeconds: (13 * 60 + 30) * 60, arabic: "زوهر" },
+        { name: "Asar", timeStr: "5:30 PM", timeInSeconds: (17 * 60 + 30) * 60, arabic: "اثر" },
+        { name: "Maghrib", timeStr: "7:10 PM", timeInSeconds: (19 * 60 + 10) * 60, arabic: "مغرب" },
+        { name: "Isha", timeStr: "8:30 PM", timeInSeconds: (20 * 60 + 30) * 60, arabic: "عشا" },
       ];
 
       // Find the next prayer
       let next = null;
-      let diffInMinutes = 0;
+      let diffInSeconds = 0;
 
       for (let i = 0; i < prayers.length; i++) {
-        if (prayers[i].timeInMinutes > currentTimeInMinutes) {
+        if (prayers[i].timeInSeconds > currentTimeInSeconds) {
           next = prayers[i];
-          diffInMinutes = prayers[i].timeInMinutes - currentTimeInMinutes;
+          diffInSeconds = prayers[i].timeInSeconds - currentTimeInSeconds;
           break;
         }
       }
@@ -76,25 +77,29 @@ const NextPrayerCard = () => {
       if (!next) {
         // Next is Fajar of tomorrow
         next = prayers[0];
-        // Time left = remaining minutes of today + Fajar time tomorrow
-        diffInMinutes = (24 * 60 - currentTimeInMinutes) + prayers[0].timeInMinutes;
+        // Time left = remaining seconds of today + Fajar time tomorrow
+        diffInSeconds = (24 * 3600 - currentTimeInSeconds) + prayers[0].timeInSeconds;
       }
 
-      const hours = Math.floor(diffInMinutes / 60);
-      const minutes = diffInMinutes % 60;
+      const hours = Math.floor(diffInSeconds / 3600);
+      const minutes = Math.floor((diffInSeconds % 3600) / 60);
+      const seconds = diffInSeconds % 60;
       
       let timeLeft = "";
       if (hours > 0) {
         timeLeft += `${hours}h `;
       }
-      timeLeft += `${minutes}m`;
+      if (hours > 0 || minutes > 0) {
+        timeLeft += `${minutes}m `;
+      }
+      timeLeft += `${seconds}s`;
 
       setNextPrayer(next);
       setTimeLeftStr(timeLeft);
     };
 
     updateCountdown();
-    const interval = setInterval(updateCountdown, 60000); // update every minute
+    const interval = setInterval(updateCountdown, 1000); // update every second
     return () => clearInterval(interval);
   }, []);
 
@@ -105,7 +110,7 @@ const NextPrayerCard = () => {
       sx={{
         background: "linear-gradient(135deg, #863ED5 0%, #240F4F 100%)", // Premium deep purple gradient
         color: "#fff",
-        borderRadius: "16px",
+        borderRadius: "5px",
         boxShadow: "0 8px 32px 0 rgba(134, 62, 213, 0.2)",
         position: "relative",
         overflow: "hidden",
