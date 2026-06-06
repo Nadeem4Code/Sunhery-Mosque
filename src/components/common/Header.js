@@ -1,26 +1,21 @@
-import React, { useState } from "react";
+import React from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
-import IconButton from "@mui/material/IconButton";
+
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 
 // Hook for the scroll up and down to hide appbar
-import { useScrollTrigger } from "@mui/material";
+
 
 import menu from "../../assets/icons/menu.svg";
 import search from "../../assets/icons/search.svg";
 import logo from "../../assets/icons/logo.svg";
 
-import { NavLink, Outlet } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 
 const Header = () => {
-  const [anchorElNav, setAnchorElNav] = React.useState(null);
-
-  const handleOpenNavMenu = (event) => {
-    setAnchorElNav(event.currentTarget);
-  };
 
   return (
     <>

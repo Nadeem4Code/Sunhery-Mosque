@@ -18,9 +18,7 @@ import {
   getDocs,
   query,
   where,
-  onSnapshot,
   getDoc,
-  arrayUnion,
 } from "firebase/firestore";
 
 // Your web app's Firebase configuration

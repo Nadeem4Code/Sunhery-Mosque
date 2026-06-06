@@ -4,7 +4,7 @@ import { createTask } from "../../config/firebase";
 // Grid
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
-import { TextField, Typography } from "@mui/material";
+import { TextField } from "@mui/material";
 import Button from "@mui/material/Button";
 
 // Card

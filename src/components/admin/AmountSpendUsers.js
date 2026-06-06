@@ -10,8 +10,6 @@ import {
 
 import { getAllTasks } from "../../config/firebase";
 
-import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
-import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
 import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
 import WalletIcon from "@mui/icons-material/Wallet";
