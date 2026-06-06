@@ -201,9 +201,7 @@ const Home = () => {
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
                     <Grid container spacing={2}>
-                      <Grid item xs={12} sx={{ display: { xs: "block", md: "none" } }}>
-                        <NextPrayerCard />
-                      </Grid>
+                    
                       <Grid item xs={12} md={12}>
                         <Card
                           sx={{
@@ -308,6 +306,9 @@ const Home = () => {
                             <QuranIcon width={isMobile ? "120" : "173"} height={isMobile ? "90" : "97"} />
                           </div>
                         </Card>
+                      </Grid>
+                      <Grid item xs={12} md={12}>
+                        <NextPrayerCard />
                       </Grid>
                       <Grid item xs={12} md={12}>
                         <Card
@@ -913,10 +914,6 @@ const Home = () => {
                             </Box>
                           </CardContent>
                         </Card>
-                      </Grid>
-                      {/* Next Prayer Card for Tablet/Desktop Only */}
-                      <Grid item xs={12} sx={{ display: { xs: "none", md: "block" } }}>
-                        <NextPrayerCard />
                       </Grid>
                     </Grid>
                   </Grid>
