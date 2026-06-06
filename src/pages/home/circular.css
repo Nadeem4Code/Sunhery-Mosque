@@ -1,0 +1,78 @@
+.circular-progress-bar {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 10px solid #e0e0e0;
+    background-color: transparent;
+  }
+  
+  .circular-progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background-color: #fff;
+    z-index: 1;
+  }
+  
+  .progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 10px solid transparent;
+    background-color: transparent;
+    clip: rect(0, 100px, 200px, 0);
+    transform: rotate(calc(var(--progress) * 3.6deg));
+  }
+  
+  .fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-color: #6ab04c;
+    clip: rect(0, 100px, 200px, 0);
+    transform: rotate(calc(var(--progress) * 3.6deg));
+  }
+  
+  .circular-progress-bar .text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    font-weight: bold;
+    z-index: 2;
+  }
+  
+  /* Customize the size and thickness of the border and the color of the background and fill */
+  .circular-progress-bar {
+    width: 150px;
+    height: 150px;
+    border-width: 5px;
+    border-color: #4f4f4f;
+    background-color: #eaeaea;
+  }
+  
+  .progress {
+    border-width: 10px;
+  }
+  
+  .fill {
+    background-color: #6ab04c;
+  }
+  
+  .circular-progress-bar .text {
+    font-size: 16px;
+    color: #4f4f4f;
+  }
+  
