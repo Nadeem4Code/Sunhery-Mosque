@@ -359,7 +359,6 @@ function TaskEditForm({ task, onSave, open, setOpen, editingTask }) {
     } else {
       // Only save and close the dialog when all input is valid
       onSave(editedData);
-      setUpdatedData(editedData);
       setOpen(false);
     }
   };
