@@ -1,6 +1,8 @@
 import React from "react";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
 
 // Components
 import FivePillars from "../../components/mosque/FivePillars";
@@ -41,6 +43,9 @@ import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 
 const Home = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   return (
     <>
       <Box sx={{ flexGrow: 1 }} style={{ marginTop: "100px" }}>
@@ -94,11 +99,11 @@ const Home = () => {
                             <Typography
                               style={{
                                 position: "absolute",
-                                top: 50,
+                                top: isMobile ? 45 : 50,
                                 left: 20,
                                 fontStyle: "normal",
                                 fontWeight: "400",
-                                fontSize: "13px",
+                                fontSize: isMobile ? "11px" : "13px",
                                 fontFamily: "Poppins",
                               }}
                             >
@@ -109,11 +114,11 @@ const Home = () => {
                             <Typography
                               style={{
                                 position: "absolute",
-                                top: 125,
+                                top: isMobile ? 115 : 125,
                                 left: 20,
                                 fontStyle: "normal",
                                 fontWeight: "600",
-                                fontSize: "16px",
+                                fontSize: isMobile ? "13px" : "16px",
                                 fontFamily: "Poppins",
                               }}
                             >
@@ -137,22 +142,22 @@ const Home = () => {
                                 position: "absolute",
                                 top: 15,
                                 right: 20, // Adjust the right position as needed
-                                height: "30px",
-                                width: "130px",
+                                height: isMobile ? "23px" : "30px",
+                                width: isMobile ? "100px" : "130px",
                               }}
                             />
                           </div>
 
                           <div
                             style={{
-                              height: "170px",
+                              height: isMobile ? "140px" : "170px",
                               display: "flex",
                               flexDirection: "column",
                               justifyContent: "flex-end",
                               alignItems: "flex-end",
                             }}
                           >
-                            <QuranIcon />
+                            <QuranIcon width={isMobile ? "110" : "173"} height={isMobile ? "62" : "97"} />
                           </div>
                         </Card>
                       </Grid>
