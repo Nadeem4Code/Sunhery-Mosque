@@ -42,6 +42,151 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 
+const NextPrayerCard = () => {
+  const [nextPrayer, setNextPrayer] = React.useState(null);
+  const [timeLeftStr, setTimeLeftStr] = React.useState("");
+
+  React.useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      const currentTimeInMinutes = currentHour * 60 + currentMinute;
+
+      const prayers = [
+        { name: "Fajar", timeStr: "5:40 AM", timeInMinutes: 5 * 60 + 40, arabic: "فجر" },
+        { name: "Zohar", timeStr: "1:30 PM", timeInMinutes: 13 * 60 + 30, arabic: "زوهر" },
+        { name: "Asar", timeStr: "5:30 PM", timeInMinutes: 17 * 60 + 30, arabic: "اثر" },
+        { name: "Maghrib", timeStr: "7:10 PM", timeInMinutes: 19 * 60 + 10, arabic: "مغرب" },
+        { name: "Isha", timeStr: "8:30 PM", timeInMinutes: 20 * 60 + 30, arabic: "عشا" },
+      ];
+
+      // Find the next prayer
+      let next = null;
+      let diffInMinutes = 0;
+
+      for (let i = 0; i < prayers.length; i++) {
+        if (prayers[i].timeInMinutes > currentTimeInMinutes) {
+          next = prayers[i];
+          diffInMinutes = prayers[i].timeInMinutes - currentTimeInMinutes;
+          break;
+        }
+      }
+
+      if (!next) {
+        // Next is Fajar of tomorrow
+        next = prayers[0];
+        // Time left = remaining minutes of today + Fajar time tomorrow
+        diffInMinutes = (24 * 60 - currentTimeInMinutes) + prayers[0].timeInMinutes;
+      }
+
+      const hours = Math.floor(diffInMinutes / 60);
+      const minutes = diffInMinutes % 60;
+      
+      let timeLeft = "";
+      if (hours > 0) {
+        timeLeft += `${hours}h `;
+      }
+      timeLeft += `${minutes}m`;
+
+      setNextPrayer(next);
+      setTimeLeftStr(timeLeft);
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 60000); // update every minute
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!nextPrayer) return null;
+
+  return (
+    <Card
+      sx={{
+        background: "linear-gradient(135deg, #863ED5 0%, #240F4F 100%)", // Premium deep purple gradient
+        color: "#fff",
+        borderRadius: "16px",
+        boxShadow: "0 8px 32px 0 rgba(134, 62, 213, 0.2)",
+        position: "relative",
+        overflow: "hidden",
+        p: 2.5,
+        transition: "transform 0.3s ease, box-shadow 0.3s ease",
+        "&:hover": {
+          transform: "translateY(-4px)",
+          boxShadow: "0 12px 40px 0 rgba(134, 62, 213, 0.35)",
+        }
+      }}
+    >
+      <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Box>
+          <Typography
+            sx={{
+              fontFamily: "Poppins",
+              fontSize: "12px",
+              fontWeight: "600",
+              textTransform: "uppercase",
+              letterSpacing: "1px",
+              opacity: 0.9,
+            }}
+          >
+            Upcoming Prayer
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: "Poppins",
+              fontSize: "24px",
+              fontWeight: "700",
+              mt: 0.5,
+              lineHeight: 1.2,
+            }}
+          >
+            {nextPrayer.name}
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: "Poppins",
+              fontSize: "14px",
+              fontWeight: "500",
+              opacity: 0.85,
+              mt: 0.5,
+            }}
+          >
+            Starts at {nextPrayer.timeStr}
+          </Typography>
+        </Box>
+        <Box textAlign="right">
+          <Typography
+            sx={{
+              fontSize: "28px",
+              fontWeight: "700",
+              fontFamily: "Poppins",
+              color: "#fff",
+              lineHeight: 1,
+            }}
+          >
+            {nextPrayer.arabic}
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: "Poppins",
+              fontSize: "12px",
+              fontWeight: "600",
+              background: "rgba(255, 255, 255, 0.2)",
+              borderRadius: "20px",
+              px: 1.5,
+              py: 0.5,
+              mt: 1,
+              display: "inline-block",
+            }}
+          >
+            in {timeLeftStr}
+          </Typography>
+        </Box>
+      </Box>
+    </Card>
+  );
+};
+
 const Home = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -56,6 +201,9 @@ const Home = () => {
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
                     <Grid container spacing={2}>
+                      <Grid item xs={12} sx={{ display: { xs: "block", md: "none" } }}>
+                        <NextPrayerCard />
+                      </Grid>
                       <Grid item xs={12} md={12}>
                         <Card
                           sx={{
@@ -142,8 +290,8 @@ const Home = () => {
                                 position: "absolute",
                                 top: 15,
                                 right: 20, // Adjust the right position as needed
-                                height: isMobile ? "23px" : "30px",
-                                width: isMobile ? "100px" : "130px",
+                                height: isMobile ? "30px" : "30px",
+                                width: isMobile ? "120px" : "130px",
                               }}
                             />
                           </div>
@@ -765,6 +913,10 @@ const Home = () => {
                             </Box>
                           </CardContent>
                         </Card>
+                      </Grid>
+                      {/* Next Prayer Card for Tablet/Desktop Only */}
+                      <Grid item xs={12} sx={{ display: { xs: "none", md: "block" } }}>
+                        <NextPrayerCard />
                       </Grid>
                     </Grid>
                   </Grid>
