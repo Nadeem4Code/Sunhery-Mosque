@@ -1,4 +1,5 @@
 import { initializeApp } from "firebase/app";
+import axios from "axios";
 import {
   GoogleAuthProvider,
   getAuth,
@@ -43,44 +44,118 @@ const signInWithGoogle = async () => {
   try {
     const res = await signInWithPopup(auth, googleProvider);
     const user = res.user;
-    const q = query(collection(db, "users"), where("uid", "==", user.uid));
-    const docs = await getDocs(q);
-    if (docs.docs.length === 0) {
-      await addDoc(collection(db, "users"), {
-        uid: user.uid,
-        userName: user.displayName,
-        authProvider: "google",
-        email: user.email,
-      });
+    
+    // Sync Google user with MongoDB
+    try {
+      await axios.get(`${API_URL}/uid/${user.uid}`);
+    } catch (err) {
+      if (err.response && err.response.status === 404) {
+        // Not found, register as a normal user
+        await axios.post(`${API_URL}/register`, {
+          uid: user.uid,
+          userName: user.displayName || "Google User",
+          email: user.email,
+          role: "user",
+          phoneNumber: "0000000000",
+        });
+      } else {
+        console.error("Error syncing Google user with MongoDB", err);
+      }
     }
   } catch (err) {
     console.error(err);
     alert(err.message);
   }
 };
+
 const logInWithEmailAndPassword = async (email, password) => {
   try {
     await signInWithEmailAndPassword(auth, email, password);
   } catch (err) {
     console.error(err);
     alert(err.message);
+    throw err;
   }
 };
 
-// Register
-const registerWithEmailAndPassword = async (userName, email, password) => {
+// Register Admin
+const registerWithEmailAndPassword = async (userName, email, password, role = "admin", phoneNumber = "0000000000", fatherName = "") => {
   try {
     const res = await createUserWithEmailAndPassword(auth, email, password);
     const user = res.user;
-    await addDoc(collection(db, "users"), {
+    
+    // Call backend to create user in MongoDB with admin/specified role
+    await axios.post(`${API_URL}/register`, {
       uid: user.uid,
       userName,
-      authProvider: "local",
       email,
+      role,
+      phoneNumber,
+      fatherName
     });
   } catch (err) {
     console.error(err);
     alert(err.message);
+    throw err;
+  }
+};
+
+// Register Normal User via Donation Page
+const registerNormalUserWithDonation = async (userName, email, password, phoneNumber, fatherName, donationType, amount, year, month, day) => {
+  try {
+    const res = await createUserWithEmailAndPassword(auth, email, password);
+    const user = res.user;
+    
+    // 1. Create/link user in MongoDB with role 'user'
+    const response = await axios.post(`${API_URL}/register`, {
+      uid: user.uid,
+      userName,
+      email,
+      role: "user",
+      phoneNumber,
+      fatherName
+    });
+
+    const mongoUser = response.data;
+
+    // 2. Log their donation to their account
+    const updatedData = { ...mongoUser };
+    const donationItem = {
+      year,
+      months: [
+        {
+          day,
+          month,
+          amount: Number(amount)
+        }
+      ]
+    };
+
+    if (donationType.toLowerCase() === 'mosque') {
+      if (!updatedData.mosque) updatedData.mosque = [];
+      const yearIdx = updatedData.mosque.findIndex(y => y.year === year);
+      if (yearIdx > -1) {
+        updatedData.mosque[yearIdx].months.push({ day, month, amount: Number(amount) });
+      } else {
+        updatedData.mosque.push(donationItem);
+      }
+    } else {
+      if (!updatedData.imam) updatedData.imam = [];
+      const yearIdx = updatedData.imam.findIndex(y => y.year === year);
+      if (yearIdx > -1) {
+        updatedData.imam[yearIdx].months.push({ day, month, amount: Number(amount) });
+      } else {
+        updatedData.imam.push(donationItem);
+      }
+    }
+
+    // Save donation data
+    await axios.put(`${API_URL}/${mongoUser.id}`, updatedData);
+    return mongoUser;
+  } catch (err) {
+    console.error(err);
+    alert(err.message);
+    throw err;
   }
 };
 
@@ -100,10 +175,11 @@ const logout = () => {
   signOut(auth);
 };
 
+const API_URL = "http://localhost:3001/books";
+
 // Create Task
-const createTask = async (userName, phoneNumber, fatherName, year,month,day, amount) => {
+const createTask = async (userName, phoneNumber, fatherName, year, month, day, amount) => {
   try {
-    // Define the book data
     const bookData = {
       userName,
       phoneNumber,
@@ -134,11 +210,8 @@ const createTask = async (userName, phoneNumber, fatherName, year,month,day, amo
       ],
     };
 
-    // Add the book data to the "books" collection in Firestore
-    const taskRef = await addDoc(collection(db, "tasks"), bookData);
-
-    // Return the ID of the newly created book
-    return taskRef.id;
+    const response = await axios.post(API_URL, bookData);
+    return response.data.id;
   } catch (error) {
     console.error("Error creating book:", error);
     throw error;
@@ -148,20 +221,19 @@ const createTask = async (userName, phoneNumber, fatherName, year,month,day, amo
 // Update a task by ID
 const updateTask = async (taskId, updatedData) => {
   try {
-    const taskRef = doc(db, "tasks", taskId);
-    await updateDoc(taskRef, updatedData);
+    const response = await axios.put(`${API_URL}/${taskId}`, updatedData);
+    return response.data;
   } catch (error) {
     console.error("Error updating task:", error);
     throw error;
   }
 };
 
-
 // Delete a task by ID
 const deleteTask = async (taskId) => {
   try {
-    const taskRef = doc(db, "tasks", taskId);
-    await deleteDoc(taskRef);
+    const response = await axios.delete(`${API_URL}/${taskId}`);
+    return response.data;
   } catch (error) {
     console.error("Error deleting task:", error);
     throw error;
@@ -171,15 +243,8 @@ const deleteTask = async (taskId) => {
 // Get a list of all tasks (with optional filters)
 const getAllTasks = async (filters = {}) => {
   try {
-    const taskCollection = collection(db, "tasks");
-    let queryRef = query(taskCollection);
-
-    const taskSnapshot = await getDocs(queryRef);
-    const tasks = taskSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    return tasks;
+    const response = await axios.get(API_URL);
+    return response.data;
   } catch (error) {
     console.error("Error fetching tasks:", error);
     throw error;
@@ -189,14 +254,8 @@ const getAllTasks = async (filters = {}) => {
 // firebase.js
 const getTaskById = async (taskId) => {
   try {
-    const taskDoc = doc(db, "tasks", taskId);
-    const taskSnapshot = await getDoc(taskDoc);
-
-    if (taskSnapshot.exists()) {
-      return { id: taskSnapshot.id, ...taskSnapshot.data() };
-    } else {
-      throw new Error("Task not found");
-    }
+    const response = await axios.get(`${API_URL}/${taskId}`);
+    return response.data;
   } catch (error) {
     console.error("Error fetching task:", error);
     throw error;
@@ -210,6 +269,7 @@ export {
   signInWithGoogle,
   logInWithEmailAndPassword,
   registerWithEmailAndPassword,
+  registerNormalUserWithDonation,
   sendPasswordReset,
   logout,
   createTask,

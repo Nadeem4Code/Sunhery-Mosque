@@ -17,12 +17,28 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [adminKey, setAdminKey] = useState("");
   const [user, loading] = useAuthState(auth);
 
   const navigate = useNavigate();
   const register = () => {
-    if (!name) alert("Please enter name");
-    registerWithEmailAndPassword(name, email, password);
+    if (!name) {
+      alert("Please enter name");
+      return;
+    }
+    if (!email) {
+      alert("Please enter email");
+      return;
+    }
+    if (!password) {
+      alert("Please enter password");
+      return;
+    }
+    if (adminKey !== "ADMIN123") {
+      alert("Invalid Admin Registration Key! Only administrators can register here. If you are a donor, please use the donation page.");
+      return;
+    }
+    registerWithEmailAndPassword(name, email, password, "admin");
   };
 
   useEffect(() => {
@@ -42,44 +58,41 @@ const Register = () => {
           <div>
             <Typography
               style={{
-                /* Sign In */
-
-                width: "143.81px",
-                height: "48.3px",
-                left: "813.18px",
-                top: "235.32px",
-
                 fontFamily: "Montserrat",
                 fontStyle: "normal",
                 fontWeight: "700",
-                fontSize: "36px",
+                fontSize: "32px",
                 lineHeight: "44px",
-
-                color: "#000000",
+                color: "#672CBC",
               }}
             >
-              Register
+              Admin Register
             </Typography>
           </div>
           <Typography
             style={{
-              /* Sign in to your account */
               marginTop: "5px",
-
-              height: "20.86px",
-              left: "813.18px",
-              top: "289.11px",
-
+              fontFamily: "Poppins",
+              fontStyle: "normal",
+              fontWeight: "500",
+              fontSize: "15px",
+              color: "#d32f2f",
+            }}
+          >
+            ⚠️ Authorized Administrators Only
+          </Typography>
+          <Typography
+            style={{
+              marginTop: "10px",
+              maxWidth: "420px",
               fontFamily: "Poppins",
               fontStyle: "normal",
               fontWeight: "400",
-              fontSize: "16px",
-              lineHeight: "19px",
-
-              color: "#000000",
+              fontSize: "13px",
+              color: "#666",
             }}
           >
-            Register into your account
+            Standard user registration is disabled. Donors can create accounts only while making an online donation on the <Link to="/donation" style={{ color: "#672CBC", fontWeight: "600", textDecoration: "none" }}>Donation Page</Link>.
           </Typography>
           <div style={{ marginTop: "20px" }}>
             <Button
@@ -248,6 +261,39 @@ const Register = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 type="password"
                 placeholder="Password"
+              />
+              <Typography
+                style={{
+                  height: "20.86px",
+                  fontFamily: "Poppins",
+                  fontStyle: "normal",
+                  fontWeight: "400",
+                  fontSize: "16px",
+                  lineHeight: "19px",
+                  marginBottom: "10px",
+                  marginTop: "10px",
+                }}
+              >
+                Admin Access Key
+              </Typography>
+              <input
+                style={{
+                  width: "356.77px",
+                  height: "43.91px",
+                  fontFamily: "Poppins",
+                  fontStyle: "normal",
+                  fontWeight: "400",
+                  fontSize: "16px",
+                  lineHeight: "19px",
+                  background: "#F5F5F5",
+                  borderRadius: "10px",
+                  border: "2px solid #F5F5F5",
+                  paddingLeft: "20px",
+                }}
+                value={adminKey}
+                onChange={(e) => setAdminKey(e.target.value)}
+                type="password"
+                placeholder="Admin Access Key"
               />
 
               <div

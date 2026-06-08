@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, Typography, Button } from "@mui/material";
+import { Card, CardContent, Typography, Button, CircularProgress } from "@mui/material";
 
 import { Link, useNavigate } from "react-router-dom";
 import TextField from "@mui/material/TextField";
-
+import axios from "axios";
 
 import { auth, logInWithEmailAndPassword } from "../../config/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [user, loading] = useAuthState(auth);
+  const [checkingRole, setCheckingRole] = useState(false);
 
   const navigate = useNavigate();
 
@@ -18,8 +20,41 @@ const Login = () => {
     if (loading) {
       return;
     }
-    if (user) navigate("/dashboard");
+    if (user) {
+      setCheckingRole(true);
+      axios.get(`http://localhost:3001/books/uid/${user.uid}`)
+        .then((res) => {
+          const mongoUser = res.data;
+          if (mongoUser.role === "admin") {
+            navigate("/dashboard");
+          } else {
+            navigate(`/user/${mongoUser.id}`);
+          }
+        })
+        .catch((err) => {
+          console.error("Error checking role:", err);
+          alert("Account error: Could not verify role. Please contact admin.");
+        })
+        .finally(() => {
+          setCheckingRole(false);
+        });
+    }
   }, [user, loading, navigate]);
+
+  if (loading || checkingRole) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "90vh",
+        }}
+      >
+        <CircularProgress color="secondary" />
+      </div>
+    );
+  }
 
   return (
     <>

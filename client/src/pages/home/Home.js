@@ -1,11 +1,9 @@
-import React from "react";
+import React, { useContext, useState } from "react";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
-
-// Components
-import FivePillars from "../../components/mosque/FivePillars";
+import UserContext from "../../context/BooksContext";
 
 // Importing the react router
 import { Outlet } from "react-router-dom";
@@ -41,6 +39,23 @@ import Stack from "@mui/material/Stack";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
+import LinearProgress from "@mui/material/LinearProgress";
+import Button from "@mui/material/Button";
+
+// Dialog & Table Imports
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Paper from "@mui/material/Paper";
 
 const NextPrayerCard = () => {
   const [nextPrayer, setNextPrayer] = React.useState(null);
@@ -195,6 +210,83 @@ const NextPrayerCard = () => {
 const Home = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { books } = useContext(UserContext);
+  
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+
+  // Detailed lists of expenses for transparency
+  const mosqueExpenses = [
+    { icon: "💡", item: "Electricity & Utility Bills", category: "Operations", cost: 15000 },
+    { icon: "🎨", item: "Wall Paint & Carpet Renovation", category: "Maintenance", cost: 20000 },
+    { icon: "🧼", item: "Cleaning Supplies & Sanitation", category: "Operations", cost: 10000 },
+  ];
+
+  const imamExpenses = [
+    { icon: "👳", item: "Imam Monthly Allowance", category: "Salaries", cost: 18000 },
+    { icon: "🔊", item: "Muazzin Monthly Allowance", category: "Salaries", cost: 5000 },
+    { icon: "📦", item: "Staff Welfare & General Support", category: "Operations", cost: 2000 },
+  ];
+
+  // Calculate total mosque and imam donations dynamically
+  let totalMosqueReceived = 0;
+  let totalImamReceived = 0;
+
+  if (books && Array.isArray(books)) {
+    books.forEach((book) => {
+      // 1. Check mosque contributions
+      if (book.mosque && Array.isArray(book.mosque)) {
+        book.mosque.forEach((yearItem) => {
+          if (yearItem.months && Array.isArray(yearItem.months)) {
+            yearItem.months.forEach((monthItem) => {
+              if (monthItem.amount) {
+                totalMosqueReceived += Number(monthItem.amount);
+              }
+            });
+          }
+        });
+      }
+
+      // 2. Check imam contributions
+      if (book.imam && Array.isArray(book.imam)) {
+        book.imam.forEach((yearItem) => {
+          if (yearItem.months && Array.isArray(yearItem.months)) {
+            yearItem.months.forEach((monthItem) => {
+              if (monthItem.amount) {
+                totalImamReceived += Number(monthItem.amount);
+              }
+            });
+          }
+        });
+      }
+
+      // 3. Fallback for legacy years/months format
+      if (book.years && Array.isArray(book.years)) {
+        book.years.forEach((yearItem) => {
+          if (yearItem.months && Array.isArray(yearItem.months)) {
+            yearItem.months.forEach((monthItem) => {
+              if (monthItem.amount) {
+                totalMosqueReceived += Number(monthItem.amount);
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+
+  // Configured spent amounts (static constants for transparency)
+  const MOSQUE_SPENT = 45000;
+  const IMAM_SPENT = 25000;
+
+  // Calculate percentages (safety limit to max 100%)
+  const mosquePercent = totalMosqueReceived > 0 
+    ? Math.min(Math.round((MOSQUE_SPENT / totalMosqueReceived) * 100), 100) 
+    : 0;
+
+  const imamPercent = totalImamReceived > 0 
+    ? Math.min(Math.round((IMAM_SPENT / totalImamReceived) * 100), 100) 
+    : 0;
 
   return (
     <>
@@ -204,6 +296,7 @@ const Home = () => {
             <Card style={{ boxShadow: "none" }}>
               <CardContent>
                 <Grid container spacing={2}>
+                 
                   <Grid item xs={12} md={6}>
                     <Grid container spacing={2}>
                     
@@ -315,17 +408,7 @@ const Home = () => {
                       <Grid item xs={12} md={12}>
                         <NextPrayerCard />
                       </Grid>
-                      <Grid item xs={12} md={12}>
-                        <Card
-                          style={{
-                            height: "202px",
-                          }}
-                        >
-                          <CardContent>
-                            <FivePillars />
-                          </CardContent>
-                        </Card>
-                      </Grid>
+                      
                     </Grid>
                   </Grid>
                   {/*Five Times Namaz*/}
@@ -922,6 +1005,211 @@ const Home = () => {
                       </Grid>
                     </Grid>
                   </Grid>
+
+                  {/* Hadith Card (Left Column) */}
+                  <Grid item xs={12} md={6}>
+                    <Card
+                      sx={{
+                        background: "linear-gradient(135deg, #863ED5 0%, #240F4F 100%)", // Deep purple gradient
+                        color: "#fff",
+                        borderRadius: "5px",
+                        boxShadow: "0 8px 32px 0 rgba(134, 62, 213, 0.2)",
+                        p: 3,
+                        height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        minHeight: "260px",
+                        transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                        "&:hover": {
+                          transform: "translateY(-4px)",
+                          boxShadow: "0 12px 40px 0 rgba(134, 62, 213, 0.35)",
+                        }
+                      }}
+                    >
+                      <Box textAlign="center">
+                        <Typography
+                          sx={{
+                            fontFamily: "Poppins",
+                            fontSize: "11px",
+                            fontWeight: "600",
+                            letterSpacing: "2px",
+                            textTransform: "uppercase",
+                            opacity: 0.8,
+                            mb: 2,
+                          }}
+                        >
+                          Hadith of the Day
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: { xs: "20px", sm: "24px" },
+                            fontWeight: "600",
+                            mb: 2,
+                            color: "#DF98FA", // Highlight color
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          «إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ»
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontFamily: "Poppins",
+                            fontSize: { xs: "13px", sm: "14.5px" },
+                            fontStyle: "italic",
+                            fontWeight: "400",
+                            lineHeight: 1.6,
+                            opacity: 0.9,
+                            mb: 1.5,
+                          }}
+                        >
+                          "Actions are judged by their intentions, and every person will get what they intended."
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontFamily: "Poppins",
+                            fontSize: "12px",
+                            fontWeight: "600",
+                            opacity: 0.7,
+                          }}
+                        >
+                          — Sahih al-Bukhari 1
+                        </Typography>
+                      </Box>
+                    </Card>
+                  </Grid>
+
+                  {/* Charity Progress & Spent Card (Right Column) */}
+                  <Grid item xs={12} md={6}>
+                    <Card
+                      sx={{
+                        backgroundColor: "#fff",
+                        color: "#240F4F",
+                        borderRadius: "5px",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
+                        p: 3,
+                        height: "100%",
+                        minHeight: "260px",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        border: "1px solid rgba(187, 196, 206, 0.35)",
+                        transition: "transform 0.3s ease",
+                        "&:hover": {
+                          transform: "translateY(-4px)",
+                        }
+                      }}
+                    >
+                      <Box>
+                        <Typography
+                          sx={{
+                            fontFamily: "Poppins",
+                            fontSize: "16px",
+                            fontWeight: "600",
+                            color: "#672CBC",
+                            mb: 2,
+                          }}
+                        >
+                          Financial Transparency
+                        </Typography>
+
+                        {/* Mosque Fund Meter */}
+                        <Box sx={{ mb: 2.5 }}>
+                          <Box display="flex" justifyContent="space-between" alignItems="center">
+                            <Typography sx={{ fontFamily: "Poppins", fontSize: "13px", fontWeight: "600", color: "#240F4F" }}>
+                              Mosque Fund (Renovations & Bills)
+                            </Typography>
+                            <Typography sx={{ fontFamily: "Poppins", fontSize: "12px", fontWeight: "700", color: "#863ED5" }}>
+                              {mosquePercent}% Spent
+                            </Typography>
+                          </Box>
+                          <LinearProgress
+                            variant="determinate"
+                            value={mosquePercent}
+                            sx={{
+                              height: 8,
+                              borderRadius: 4,
+                              backgroundColor: "rgba(144, 85, 255, 0.12)",
+                              "& .MuiLinearProgress-bar": {
+                                borderRadius: 4,
+                                background: "linear-gradient(90deg, #DF98FA 0%, #9055FF 100%)",
+                              },
+                              my: 0.8,
+                            }}
+                          />
+                          <Box display="flex" justifyContent="space-between" opacity={0.8}>
+                            <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "500" }}>
+                              Collected: ₹{totalMosqueReceived.toLocaleString()}
+                            </Typography>
+                            <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "500" }}>
+                              Spent: ₹{MOSQUE_SPENT.toLocaleString()}
+                            </Typography>
+                            <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "600", color: "#672CBC" }}>
+                              Balance: ₹{(totalMosqueReceived - MOSQUE_SPENT).toLocaleString()}
+                            </Typography>
+                          </Box>
+                        </Box>
+
+                        {/* Imam Fund Meter */}
+                        <Box sx={{ mb: 2 }}>
+                          <Box display="flex" justifyContent="space-between" alignItems="center">
+                            <Typography sx={{ fontFamily: "Poppins", fontSize: "13px", fontWeight: "600", color: "#240F4F" }}>
+                              Imam & Staff Fund (Salaries & Care)
+                            </Typography>
+                            <Typography sx={{ fontFamily: "Poppins", fontSize: "12px", fontWeight: "700", color: "#863ED5" }}>
+                              {imamPercent}% Spent
+                            </Typography>
+                          </Box>
+                          <LinearProgress
+                            variant="determinate"
+                            value={imamPercent}
+                            sx={{
+                              height: 8,
+                              borderRadius: 4,
+                              backgroundColor: "rgba(144, 85, 255, 0.12)",
+                              "& .MuiLinearProgress-bar": {
+                                borderRadius: 4,
+                                background: "linear-gradient(90deg, #DF98FA 0%, #9055FF 100%)",
+                              },
+                              my: 0.8,
+                            }}
+                          />
+                          <Box display="flex" justifyContent="space-between" opacity={0.8}>
+                            <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "500" }}>
+                              Collected: ₹{totalImamReceived.toLocaleString()}
+                            </Typography>
+                            <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "500" }}>
+                              Spent: ₹{IMAM_SPENT.toLocaleString()}
+                            </Typography>
+                            <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "600", color: "#672CBC" }}>
+                              Balance: ₹{(totalImamReceived - IMAM_SPENT).toLocaleString()}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Box>
+
+                      <Button
+                        onClick={() => setDetailsOpen(true)}
+                        variant="contained"
+                        fullWidth
+                        sx={{
+                          background: "linear-gradient(135deg, #DF98FA 0%, #9055FF 100%)",
+                          color: "#fff",
+                          fontFamily: "Poppins",
+                          fontWeight: "600",
+                          textTransform: "none",
+                          fontSize: "13px",
+                          boxShadow: "none",
+                          "&:hover": {
+                            background: "linear-gradient(135deg, #9055FF 0%, #DF98FA 100%)",
+                            boxShadow: "none",
+                          }
+                        }}
+                      >
+                        Show Details
+                      </Button>
+                    </Card>
+                  </Grid>
                 </Grid>
               </CardContent>
             </Card>
@@ -929,6 +1217,210 @@ const Home = () => {
         </Grid>
       </Box>
       <Outlet />
+
+      {/* Financial Transparency Details Modal */}
+      <Dialog 
+        open={detailsOpen} 
+        onClose={() => setDetailsOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: "8px",
+            fontFamily: "Poppins",
+          }
+        }}
+      >
+        <DialogTitle
+          sx={{
+            background: "linear-gradient(135deg, #863ED5 0%, #240F4F 100%)",
+            color: "#fff",
+            fontFamily: "Poppins",
+            fontWeight: "600",
+            fontSize: "18px",
+            pb: 2,
+          }}
+        >
+          Financial Transparency Details
+        </DialogTitle>
+        
+        <Tabs 
+          value={activeTab} 
+          onChange={(e, val) => setActiveTab(val)}
+          variant="fullWidth"
+          sx={{
+            borderBottom: "1px solid rgba(0,0,0,0.1)",
+            "& .MuiTab-root": {
+              fontFamily: "Poppins",
+              fontWeight: "600",
+              fontSize: "13px",
+              color: "#240F4F",
+            },
+            "& .Mui-selected": {
+              color: "#672CBC !important",
+            },
+            "& .MuiTabs-indicator": {
+              backgroundColor: "#672CBC",
+            }
+          }}
+        >
+          <Tab label="Mosque Fund" />
+          <Tab label="Imam & Staff Fund" />
+        </Tabs>
+        
+        <DialogContent sx={{ p: 2.5 }}>
+          {activeTab === 0 ? (
+            <Box>
+              {/* Summary Block */}
+              <Box 
+                sx={{ 
+                  mb: 2.5, 
+                  p: 2, 
+                  backgroundColor: "rgba(144, 85, 255, 0.05)", 
+                  borderRadius: "5px", 
+                  border: "1px solid rgba(134, 62, 213, 0.15)" 
+                }}
+              >
+                <Typography sx={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "600", color: "#240F4F", mb: 1 }}>
+                  Summary Breakdown
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={4}>
+                    <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", color: "#8789A3" }}>Total Collected</Typography>
+                    <Typography sx={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "700", color: "#240F4F" }}>
+                      ₹{totalMosqueReceived.toLocaleString()}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={4}>
+                    <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", color: "#8789A3" }}>Total Spent</Typography>
+                    <Typography sx={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "700", color: "#E03131" }}>
+                      ₹{MOSQUE_SPENT.toLocaleString()}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={4}>
+                    <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", color: "#8789A3" }}>Net Balance</Typography>
+                    <Typography sx={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "700", color: "#0CA678" }}>
+                      ₹{(totalMosqueReceived - MOSQUE_SPENT).toLocaleString()}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+
+              <Typography sx={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "600", color: "#240F4F", mb: 1.5 }}>
+                Itemized Expenses
+              </Typography>
+              <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: "4px" }}>
+                <Table size="small">
+                  <TableHead sx={{ backgroundColor: "rgba(0,0,0,0.02)" }}>
+                    <TableRow>
+                      <TableCell sx={{ fontFamily: "Poppins", fontWeight: "600" }}>Item</TableCell>
+                      <TableCell sx={{ fontFamily: "Poppins", fontWeight: "600" }}>Category</TableCell>
+                      <TableCell align="right" sx={{ fontFamily: "Poppins", fontWeight: "600" }}>Cost</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {mosqueExpenses.map((row, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell sx={{ fontFamily: "Poppins", fontSize: "12.5px" }}>
+                          <span style={{ marginRight: "8px" }}>{row.icon}</span>
+                          {row.item}
+                        </TableCell>
+                        <TableCell sx={{ fontFamily: "Poppins", fontSize: "12.5px", color: "#8789A3" }}>{row.category}</TableCell>
+                        <TableCell align="right" sx={{ fontFamily: "Poppins", fontSize: "12.5px", fontWeight: "600" }}>
+                          ₹{row.cost.toLocaleString()}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+          ) : (
+            <Box>
+              {/* Summary Block */}
+              <Box 
+                sx={{ 
+                  mb: 2.5, 
+                  p: 2, 
+                  backgroundColor: "rgba(144, 85, 255, 0.05)", 
+                  borderRadius: "5px", 
+                  border: "1px solid rgba(134, 62, 213, 0.15)" 
+                }}
+              >
+                <Typography sx={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "600", color: "#240F4F", mb: 1 }}>
+                  Summary Breakdown
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={4}>
+                    <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", color: "#8789A3" }}>Total Collected</Typography>
+                    <Typography sx={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "700", color: "#240F4F" }}>
+                      ₹{totalImamReceived.toLocaleString()}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={4}>
+                    <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", color: "#8789A3" }}>Total Spent</Typography>
+                    <Typography sx={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "700", color: "#E03131" }}>
+                      ₹{IMAM_SPENT.toLocaleString()}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={4}>
+                    <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", color: "#8789A3" }}>Net Balance</Typography>
+                    <Typography sx={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "700", color: "#0CA678" }}>
+                      ₹{(totalImamReceived - IMAM_SPENT).toLocaleString()}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+
+              <Typography sx={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "600", color: "#240F4F", mb: 1.5 }}>
+                Itemized Expenses
+              </Typography>
+              <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: "4px" }}>
+                <Table size="small">
+                  <TableHead sx={{ backgroundColor: "rgba(0,0,0,0.02)" }}>
+                    <TableRow>
+                      <TableCell sx={{ fontFamily: "Poppins", fontWeight: "600" }}>Item</TableCell>
+                      <TableCell sx={{ fontFamily: "Poppins", fontWeight: "600" }}>Category</TableCell>
+                      <TableCell align="right" sx={{ fontFamily: "Poppins", fontWeight: "600" }}>Cost</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {imamExpenses.map((row, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell sx={{ fontFamily: "Poppins", fontSize: "12.5px" }}>
+                          <span style={{ marginRight: "8px" }}>{row.icon}</span>
+                          {row.item}
+                        </TableCell>
+                        <TableCell sx={{ fontFamily: "Poppins", fontSize: "12.5px", color: "#8789A3" }}>{row.category}</TableCell>
+                        <TableCell align="right" sx={{ fontFamily: "Poppins", fontSize: "12.5px", fontWeight: "600" }}>
+                          ₹{row.cost.toLocaleString()}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+          )}
+        </DialogContent>
+        
+        <DialogActions sx={{ px: 2.5, pb: 2.5 }}>
+          <Button 
+            onClick={() => setDetailsOpen(false)}
+            sx={{
+              color: "#672CBC",
+              fontFamily: "Poppins",
+              fontWeight: "600",
+              textTransform: "none",
+              "&:hover": {
+                backgroundColor: "rgba(103, 44, 188, 0.05)",
+              }
+            }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

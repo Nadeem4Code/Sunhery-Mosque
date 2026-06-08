@@ -1,16 +1,57 @@
-import React from "react";
-import { Grid, Card, CardContent, Typography, Avatar } from "@mui/material";
-
-
+import React, { useState, useEffect } from "react";
+import { Grid, Card, CardContent, Typography, Avatar, CircularProgress } from "@mui/material";
+import { useNavigate, NavLink } from "react-router-dom";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth } from "../../config/firebase";
+import axios from "axios";
 
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 
 // Components
 import AmountSpendUsers from "../../components/admin/AmountSpendUsers";
-import { NavLink } from "react-router-dom";
 import AddUser from "./AddUser";
+
 const Dashboard = () => {
+  const [user, loading] = useAuthState(auth);
+  const [checkingRole, setCheckingRole] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (loading) return;
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    axios.get(`http://localhost:3001/books/uid/${user.uid}`)
+      .then((res) => {
+        if (res.data.role !== "admin") {
+          navigate(`/user/${res.data.id}`);
+        } else {
+          setCheckingRole(false);
+        }
+      })
+      .catch((err) => {
+        console.error("Dashboard auth check failed:", err);
+        navigate("/login");
+      });
+  }, [user, loading, navigate]);
+
+  if (loading || checkingRole) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "90vh",
+        }}
+      >
+        <CircularProgress color="secondary" />
+      </div>
+    );
+  }
 
  
   
