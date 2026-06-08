@@ -90,11 +90,9 @@ const Donate = () => {
       // Simulate network request/payment processor latency
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      let userProfile = null;
-
       if (createAccount) {
         // Create Firebase account + MongoDB registration + Donation record
-        userProfile = await registerNormalUserWithDonation(
+        await registerNormalUserWithDonation(
           userName,
           email,
           password,
@@ -108,7 +106,7 @@ const Donate = () => {
         );
       } else {
         // Create MongoDB-only donation record (manual/anonymous flow)
-        userProfile = await createTask(
+        await createTask(
           userName,
           phoneNumber,
           fatherName,

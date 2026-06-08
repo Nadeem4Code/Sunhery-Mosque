@@ -9,18 +9,7 @@ import {
   sendPasswordResetEmail,
   signOut,
 } from "firebase/auth";
-import {
-  getFirestore,
-  addDoc,
-  collection,
-  updateDoc,
-  doc,
-  deleteDoc,
-  getDocs,
-  query,
-  where,
-  getDoc,
-} from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
