@@ -49,6 +49,14 @@ const Footer = () => {
             .nav-active-pop {
               animation: nav-pop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
             }
+            /* Remove blue/grey tap highlights and square outlines on click */
+            .MuiBottomNavigation-root a,
+            .MuiBottomNavigation-root button,
+            .MuiBottomNavigation-root .MuiButtonBase-root {
+              outline: none !important;
+              box-shadow: none !important;
+              -webkit-tap-highlight-color: transparent !important;
+            }
           `}</style>
           <Stack direction="row" spacing={3}>
             <div
