@@ -113,14 +113,20 @@ const Donate = () => {
   // Step 2 Login Handler
   const handleLoginNext = async (e) => {
     e.preventDefault();
-    if (!email.includes("@")) {
+    
+    const cleanInput = email.trim();
+    const isEmail = cleanInput.includes("@");
+    const isPhone = /^\d{10}$/.test(cleanInput);
+
+    if (!isEmail && !isPhone) {
       setEmailError(true);
       return;
     }
 
     setIsProcessing(true);
     try {
-      await logInWithEmailAndPassword(email, password);
+      const loginIdentifier = isEmail ? cleanInput : `${cleanInput}@jama-masjid.com`;
+      await logInWithEmailAndPassword(loginIdentifier, password);
       // Login successful! Trigger payment
       await handlePaymentFlow(false);
     } catch (err) {
@@ -133,15 +139,18 @@ const Donate = () => {
   // Step 2 Register Handler
   const handleRegisterNext = async (e) => {
     e.preventDefault();
-    if (!email.includes("@")) {
-      setEmailError(true);
+    if (phoneNumber.length !== 10) {
+      alert("Please enter a valid 10-digit phone number in Step 1.");
+      setStep(1);
       return;
     }
 
     setIsProcessing(true);
     try {
+      // Map phone number to email format under the hood
+      const mappedEmail = `${phoneNumber}@jama-masjid.com`;
       // Create user auth and MongoDB profile before collecting payment
-      await registerUserBeforePayment(userName, email, password, phoneNumber, fatherName);
+      await registerUserBeforePayment(userName, mappedEmail, password, phoneNumber, fatherName);
       // Trigger payment flow as logged in user
       await handlePaymentFlow(false);
     } catch (err) {
@@ -775,16 +784,10 @@ const Donate = () => {
                             <Grid item xs={12}>
                               <TextField
                                 fullWidth
-                                label="Email Address"
+                                label="Registering with Phone Number"
                                 variant="outlined"
-                                required
-                                value={email}
-                                onChange={(e) => {
-                                  setEmail(e.target.value);
-                                  setEmailError(false);
-                                }}
-                                error={emailError}
-                                helperText={emailError ? "Please enter a valid email" : ""}
+                                disabled
+                                value={phoneNumber}
                                 InputLabelProps={{ style: { fontFamily: "Poppins", fontSize: "13px" } }}
                                 inputProps={{ style: { fontFamily: "Poppins", fontSize: "13.5px" } }}
                               />
@@ -833,7 +836,7 @@ const Donate = () => {
                             <Grid item xs={12}>
                               <TextField
                                 fullWidth
-                                label="Email Address"
+                                label="Phone Number or Email"
                                 variant="outlined"
                                 required
                                 value={email}
@@ -842,7 +845,7 @@ const Donate = () => {
                                   setEmailError(false);
                                 }}
                                 error={emailError}
-                                helperText={emailError ? "Please enter a valid email" : ""}
+                                helperText={emailError ? "Please enter a valid 10-digit phone number or email" : ""}
                                 InputLabelProps={{ style: { fontFamily: "Poppins", fontSize: "13px" } }}
                                 inputProps={{ style: { fontFamily: "Poppins", fontSize: "13.5px" } }}
                               />

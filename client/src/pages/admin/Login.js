@@ -41,6 +41,34 @@ const Login = () => {
     }
   }, [user, loading, navigate]);
 
+  const handleLogin = async () => {
+    if (!email) {
+      alert("Please enter Phone Number or Email");
+      return;
+    }
+    if (!password) {
+      alert("Please enter password");
+      return;
+    }
+
+    const cleanInput = email.trim();
+    const isEmail = cleanInput.includes("@");
+    const isPhone = /^\d{10}$/.test(cleanInput);
+
+    if (!isEmail && !isPhone) {
+      alert("Please enter a valid email or 10-digit phone number");
+      return;
+    }
+
+    const loginIdentifier = isEmail ? cleanInput : `${cleanInput}@jama-masjid.com`;
+    
+    try {
+      await logInWithEmailAndPassword(loginIdentifier, password);
+    } catch (err) {
+      console.error("Login failed:", err);
+    }
+  };
+
   if (loading || checkingRole) {
     return (
       <div
@@ -107,7 +135,7 @@ const Login = () => {
                 marginBottom: "10px",
               }}
             >
-              Email address
+              Phone Number or Email
             </Typography>
             <TextField
               variant="standard"
@@ -123,7 +151,7 @@ const Login = () => {
                 lineHeight: "19px",
               }}
               type="text"
-              placeholder="Email"
+              placeholder="Phone or Email"
             />
             <Typography
               style={{
@@ -183,7 +211,7 @@ const Login = () => {
               }}
             >
               <Button
-                onClick={() => logInWithEmailAndPassword(email, password)}
+                onClick={handleLogin}
                 variant="contained"
                 style={{
                   textTransform: "none",
