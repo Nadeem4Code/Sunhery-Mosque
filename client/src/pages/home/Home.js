@@ -290,7 +290,7 @@ const Home = () => {
 
   return (
     <>
-      <Box sx={{ flexGrow: 1 }} style={{ marginTop: "100px" }}>
+      <Box sx={{ flexGrow: 1 }} style={{ marginTop: "24px" }}>
         <Grid container spacing={2}>
           <Grid item xs={12} md={12}>
             <Card style={{ boxShadow: "none" }}>

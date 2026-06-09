@@ -42,7 +42,7 @@ const Header = () => {
                 style={{ width: "30px", height: "30px" }}
                 alt="Logo"
               />
-              Jama Masjid
+              Sunheri Mosque
             </Typography>
 
             <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
@@ -103,6 +103,7 @@ const Header = () => {
           </Toolbar>
         </Container>
       </AppBar>
+      <Toolbar />
       <>
         <Outlet />
       </>

@@ -102,11 +102,11 @@ function ShowUser() {
   };
 
   return (
-    <div>
+    <Box style={{ marginTop: "24px" }}>
       {tasks.length === 0 ? (
-        <p>No Users available.</p>
+        <Typography style={{ fontFamily: "Poppins", padding: "20px" }}>No Users available.</Typography>
       ) : (
-        <Card style={{ marginTop: "100px", boxShadow: "none" }}>
+        <Card style={{ boxShadow: "none" }}>
           <div
             style={{
               display: "flex",
@@ -323,7 +323,7 @@ function ShowUser() {
           </Card>
         </Card>
       )}
-    </div>
+    </Box>
   );
 }
 

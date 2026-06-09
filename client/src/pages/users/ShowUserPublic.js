@@ -51,20 +51,20 @@ function ShowUserPublic() {
   };
 
   return (
-    <>
+    <Box style={{ marginTop: "24px" }}>
       {loading ? (
         <div
           style={{
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            height: "100vh",
+            height: "80vh",
           }}
         >
           <CircularProgress color="success" />
         </div>
       ) : (
-        <Card style={{ marginTop: "100px", boxShadow: "none" }}>
+        <Card style={{ boxShadow: "none" }}>
           <div
             style={{
               display: "flex",
@@ -227,7 +227,7 @@ function ShowUserPublic() {
           </Card>
         </Card>
       )}
-    </>
+    </Box>
   );
 }
 

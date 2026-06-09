@@ -22,7 +22,7 @@ const PrayerTimes = () => {
 
   return (
     <>
-      <Box sx={{ flexGrow: 1 }} style={{ marginTop: "50px" }}>
+      <Box sx={{ flexGrow: 1 }} style={{ marginTop: "24px" }}>
         <Card>
           <CardContent>
             <Grid container spacing={2}>

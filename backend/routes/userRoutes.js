@@ -7,7 +7,9 @@ const {
   updateUser,
   deleteUser,
   getUserByUid,
-  registerUser
+  registerUser,
+  createRazorpayOrder,
+  verifyRazorpayPayment
 } = require('../controllers/userController');
 
 router.route('/')
@@ -19,6 +21,12 @@ router.route('/register')
 
 router.route('/uid/:uid')
   .get(getUserByUid);
+
+router.route('/payment/order')
+  .post(createRazorpayOrder);
+
+router.route('/payment/verify')
+  .post(verifyRazorpayPayment);
 
 router.route('/:id')
   .get(getUserById)

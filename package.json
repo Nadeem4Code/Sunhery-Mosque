@@ -1,9 +1,0 @@
-{
-  "name": "jama-masjid-app",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "start": "npm --prefix client start",
-    "server": "npm --prefix backend run dev"
-  }
-}

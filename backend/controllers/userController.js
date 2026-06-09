@@ -1,4 +1,17 @@
 const User = require('../models/userModel');
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
+
+// Helper to initialize Razorpay dynamically if environment keys are present
+const getRazorpayInstance = () => {
+  if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+    return new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+  }
+  return null;
+};
 
 // @desc Get all users
 // @route GET /books
@@ -163,6 +176,83 @@ const registerUser = async (req, res, next) => {
   }
 };
 
+// @desc Create Razorpay Order
+// @route POST /books/payment/order
+const createRazorpayOrder = async (req, res, next) => {
+  try {
+    const { amount } = req.body;
+    if (!amount || Number(amount) <= 0) {
+      return res.status(400).json({ message: 'Valid amount is required' });
+    }
+
+    const rzp = getRazorpayInstance();
+    if (!rzp) {
+      // Sandbox Mock Mode fallback
+      console.log('Razorpay keys not configured. Falling back to Sandbox Mock Mode.');
+      return res.status(200).json({
+        isSimulated: true,
+        order_id: 'mock_order_' + Math.random().toString(36).substring(2, 15),
+        amount: Number(amount) * 100, // in paise
+        currency: 'INR'
+      });
+    }
+
+    const options = {
+      amount: Math.round(Number(amount) * 100), // in paise
+      currency: 'INR',
+      receipt: 'receipt_' + Date.now(),
+    };
+
+    const order = await rzp.orders.create(options);
+    res.status(201).json({
+      isSimulated: false,
+      keyId: process.env.RAZORPAY_KEY_ID,
+      order_id: order.id,
+      amount: order.amount,
+      currency: order.currency
+    });
+  } catch (error) {
+    console.error('Error creating Razorpay order:', error);
+    next(error);
+  }
+};
+
+// @desc Verify Razorpay Payment Signature
+// @route POST /books/payment/verify
+const verifyRazorpayPayment = async (req, res, next) => {
+  try {
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+
+    // If it's a simulated order, we verify directly
+    if (razorpay_order_id && razorpay_order_id.startsWith('mock_order_')) {
+      console.log('Verifying simulated payment order:', razorpay_order_id);
+      return res.status(200).json({ success: true, message: 'Simulated payment verified successfully' });
+    }
+
+    if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
+      return res.status(400).json({ message: 'Missing verification parameters' });
+    }
+
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keySecret) {
+      return res.status(500).json({ message: 'Razorpay secret key not configured on server' });
+    }
+
+    const hmac = crypto.createHmac('sha256', keySecret);
+    hmac.update(razorpay_order_id + '|' + razorpay_payment_id);
+    const generated_signature = hmac.digest('hex');
+
+    if (generated_signature === razorpay_signature) {
+      res.status(200).json({ success: true, message: 'Payment verified successfully' });
+    } else {
+      res.status(400).json({ success: false, message: 'Invalid payment signature verification failed' });
+    }
+  } catch (error) {
+    console.error('Error verifying Razorpay payment:', error);
+    next(error);
+  }
+};
+
 module.exports = {
   getUsers,
   getUserById,
@@ -170,5 +260,7 @@ module.exports = {
   updateUser,
   deleteUser,
   getUserByUid,
-  registerUser
+  registerUser,
+  createRazorpayOrder,
+  verifyRazorpayPayment
 };
