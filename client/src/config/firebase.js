@@ -251,6 +251,111 @@ const getTaskById = async (taskId) => {
   }
 };
 
+// Register user in auth and MongoDB before payment
+const registerUserBeforePayment = async (userName, email, password, phoneNumber, fatherName) => {
+  try {
+    const res = await createUserWithEmailAndPassword(auth, email, password);
+    const user = res.user;
+    
+    // Call backend to create user in MongoDB
+    const response = await axios.post(`${API_URL}/register`, {
+      uid: user.uid,
+      userName,
+      email,
+      role: "user",
+      phoneNumber,
+      fatherName
+    });
+    return response.data;
+  } catch (err) {
+    console.error("Error in registerUserBeforePayment:", err);
+    throw err;
+  }
+};
+
+// Append donation details to an existing logged in user's profile
+const logDonationForLoggedInUser = async (uid, userName, phoneNumber, fatherName, donationType, amount, year, month, day) => {
+  try {
+    // 1. Fetch user from MongoDB by Firebase UID
+    const response = await axios.get(`${API_URL}/uid/${uid}`);
+    const mongoUser = response.data;
+
+    // 2. Update user info and log donation
+    const updatedData = { ...mongoUser };
+    if (userName) updatedData.userName = userName;
+    if (phoneNumber) updatedData.phoneNumber = phoneNumber;
+    if (fatherName) updatedData.fatherName = fatherName;
+
+    const donationItem = {
+      year,
+      months: [
+        {
+          day,
+          month,
+          amount: Number(amount)
+        }
+      ]
+    };
+
+    if (donationType.toLowerCase() === 'mosque') {
+      if (!updatedData.mosque) updatedData.mosque = [];
+      const yearIdx = updatedData.mosque.findIndex(y => y.year === year);
+      if (yearIdx > -1) {
+        updatedData.mosque[yearIdx].months.push({ day, month, amount: Number(amount) });
+      } else {
+        updatedData.mosque.push(donationItem);
+      }
+    } else {
+      if (!updatedData.imam) updatedData.imam = [];
+      const yearIdx = updatedData.imam.findIndex(y => y.year === year);
+      if (yearIdx > -1) {
+        updatedData.imam[yearIdx].months.push({ day, month, amount: Number(amount) });
+      } else {
+        updatedData.imam.push(donationItem);
+      }
+    }
+
+    // 3. Save donation data
+    const updateResponse = await axios.put(`${API_URL}/${mongoUser.id}`, updatedData);
+    return updateResponse.data;
+  } catch (error) {
+    console.error("Error logging donation for logged in user:", error);
+    // If the MongoDB user document doesn't exist, register them in MongoDB
+    if (error.response && error.response.status === 404) {
+      const registerRes = await axios.post(`${API_URL}/register`, {
+        uid,
+        userName,
+        email: auth.currentUser ? auth.currentUser.email : "",
+        role: "user",
+        phoneNumber,
+        fatherName
+      });
+      const mongoUser = registerRes.data;
+      
+      const updatedData = { ...mongoUser };
+      const donationItem = {
+        year,
+        months: [
+          {
+            day,
+            month,
+            amount: Number(amount)
+          }
+        ]
+      };
+      if (donationType.toLowerCase() === 'mosque') {
+        updatedData.mosque = [donationItem];
+      } else {
+        updatedData.imam = [donationItem];
+      }
+      
+      const updateResponse = await axios.put(`${API_URL}/${mongoUser.id}`, updatedData);
+      return updateResponse.data;
+    }
+    throw error;
+  }
+};
+
 // All exports
 export {
   auth,
@@ -266,4 +371,6 @@ export {
   deleteTask,
   getAllTasks,
   getTaskById,
+  registerUserBeforePayment,
+  logDonationForLoggedInUser,
 };
