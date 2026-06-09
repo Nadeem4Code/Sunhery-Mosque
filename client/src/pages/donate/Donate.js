@@ -18,6 +18,7 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import LockIcon from "@mui/icons-material/Lock";
 import dayjs from "dayjs";
+import { jsPDF } from "jspdf";
 import axios from "axios";
 import { 
   createTask, 
@@ -67,6 +68,125 @@ const Donate = () => {
   // Helper validation
   const [phoneError, setPhoneError] = useState(false);
   const [emailError, setEmailError] = useState(false);
+
+  const pdfDownloadedRef = React.useRef("");
+
+  const downloadPDFReceipt = (data) => {
+    if (!data) return;
+    try {
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a5",
+      });
+
+      // Set border
+      doc.setDrawColor(103, 44, 188); // Purple
+      doc.setLineWidth(1);
+      doc.rect(5, 5, doc.internal.pageSize.width - 10, doc.internal.pageSize.height - 10);
+
+      // Inner double border
+      doc.setLineWidth(0.3);
+      doc.rect(7, 7, doc.internal.pageSize.width - 14, doc.internal.pageSize.height - 14);
+
+      // Header
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.setTextColor(36, 15, 79); // Dark purple
+      doc.text("JAMA MASJID", doc.internal.pageSize.width / 2, 20, { align: "center" });
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text("Sunheri Masjid, Contribution Portal", doc.internal.pageSize.width / 2, 25, { align: "center" });
+
+      // Separator
+      doc.setDrawColor(220, 220, 220);
+      doc.line(15, 30, doc.internal.pageSize.width - 15, 30);
+
+      // Title
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.setTextColor(103, 44, 188);
+      doc.text("DONATION RECEIPT", doc.internal.pageSize.width / 2, 40, { align: "center" });
+
+      // Content
+      doc.setTextColor(60, 60, 60);
+      doc.setFontSize(10);
+      
+      const startY = 52;
+      const spacing = 8;
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Transaction ID:", 15, startY);
+      doc.setFont("helvetica", "normal");
+      doc.text(data.transactionId, 50, startY);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Date & Time:", 15, startY + spacing);
+      doc.setFont("helvetica", "normal");
+      doc.text(data.date, 50, startY + spacing);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Donor Name:", 15, startY + spacing * 2);
+      doc.setFont("helvetica", "normal");
+      doc.text(data.name, 50, startY + spacing * 2);
+
+      let adjustedY = startY + spacing * 3;
+      if (data.fatherName) {
+        doc.setFont("helvetica", "bold");
+        doc.text("Father's Name:", 15, adjustedY);
+        doc.setFont("helvetica", "normal");
+        doc.text(data.fatherName, 50, adjustedY);
+        adjustedY += spacing;
+      }
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Phone Number:", 15, adjustedY);
+      doc.setFont("helvetica", "normal");
+      doc.text(data.phone, 50, adjustedY);
+      adjustedY += spacing;
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Purpose:", 15, adjustedY);
+      doc.setFont("helvetica", "normal");
+      doc.text(data.purpose === "mosque" ? "Mosque Maintenance & Fund" : "Imam Salary & Welfare Fund", 50, adjustedY);
+      adjustedY += spacing * 2;
+
+      // Amount Box
+      doc.setFillColor(241, 238, 246);
+      doc.rect(15, adjustedY - 6, doc.internal.pageSize.width - 30, 12, "F");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(103, 44, 188);
+      doc.text("Amount Contributed:", 20, adjustedY + 1);
+      doc.text(`INR ${Number(data.amount).toLocaleString()}.00`, doc.internal.pageSize.width - 20, adjustedY + 1, { align: "right" });
+
+      // Gratitude
+      doc.setTextColor(80, 80, 80);
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(9);
+      doc.text("May Allah reward you for your generous contribution.", doc.internal.pageSize.width / 2, adjustedY + 22, { align: "center" });
+      doc.text("BarakAllahu Feekum", doc.internal.pageSize.width / 2, adjustedY + 27, { align: "center" });
+
+      // Footer
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      doc.setTextColor(150, 150, 150);
+      doc.text("This is an automatically generated receipt and does not require a signature.", doc.internal.pageSize.width / 2, doc.internal.pageSize.height - 15, { align: "center" });
+
+      doc.save(`jama_masjid_receipt_${data.transactionId}.pdf`);
+    } catch (err) {
+      console.error("Failed to generate PDF receipt", err);
+    }
+  };
+
+  useEffect(() => {
+    if (step === 3 && receiptData && pdfDownloadedRef.current !== receiptData.transactionId) {
+      pdfDownloadedRef.current = receiptData.transactionId;
+      downloadPDFReceipt(receiptData);
+    }
+  }, [step, receiptData]);
 
   // Sync details from current user if logged in
   useEffect(() => {
@@ -227,6 +347,7 @@ const Donate = () => {
         setReceiptData({
           name: userName,
           phone: phoneNumber,
+          fatherName: fatherName,
           amount: amount,
           purpose: purpose,
           date: now.format("DD MMM YYYY, hh:mm A"),
@@ -299,6 +420,7 @@ const Donate = () => {
               setReceiptData({
                 name: userName,
                 phone: phoneNumber,
+                fatherName: fatherName,
                 amount: amount,
                 purpose: purpose,
                 date: now.format("DD MMM YYYY, hh:mm A"),
@@ -407,6 +529,11 @@ const Donate = () => {
               <Typography style={{ fontFamily: "Poppins", fontSize: "14px", color: "#444", marginTop: "8px" }}>
                 <strong>Donor Name:</strong> {receiptData.name}
               </Typography>
+              {receiptData.fatherName && (
+                <Typography style={{ fontFamily: "Poppins", fontSize: "14px", color: "#444", marginTop: "8px" }}>
+                  <strong>Father's Name:</strong> {receiptData.fatherName}
+                </Typography>
+              )}
               <Typography style={{ fontFamily: "Poppins", fontSize: "14px", color: "#444", marginTop: "8px" }}>
                 <strong>Phone Number:</strong> {receiptData.phone}
               </Typography>
@@ -438,26 +565,42 @@ const Donate = () => {
               )}
             </Box>
 
-            <Button
-              variant="contained"
-              onClick={() => {
-                setStep(1);
-                setReceiptData(null);
-              }}
-              style={{
-                marginTop: "30px",
-                background: "linear-gradient(135deg, #672CBC 0%, #9055FF 100%)",
-                borderRadius: "12px",
-                textTransform: "none",
-                fontSize: "15px",
-                fontWeight: "600",
-                padding: "10px 30px",
-                boxShadow: "none",
-              }}
-              startIcon={<ArrowBackIcon />}
-            >
-              Donate Again
-            </Button>
+            <Box style={{ display: "flex", justifyContent: "center", gap: "16px", marginTop: "30px" }}>
+              <Button
+                variant="outlined"
+                onClick={() => downloadPDFReceipt(receiptData)}
+                style={{
+                  borderColor: "#672CBC",
+                  color: "#672CBC",
+                  borderRadius: "12px",
+                  textTransform: "none",
+                  fontSize: "15px",
+                  fontWeight: "600",
+                  padding: "10px 24px",
+                }}
+              >
+                Download PDF
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => {
+                  setStep(1);
+                  setReceiptData(null);
+                }}
+                style={{
+                  background: "linear-gradient(135deg, #672CBC 0%, #9055FF 100%)",
+                  borderRadius: "12px",
+                  textTransform: "none",
+                  fontSize: "15px",
+                  fontWeight: "600",
+                  padding: "10px 24px",
+                  boxShadow: "none",
+                }}
+                startIcon={<ArrowBackIcon />}
+              >
+                Donate Again
+              </Button>
+            </Box>
           </CardContent>
         </Card>
       </Box>
