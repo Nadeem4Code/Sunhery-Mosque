@@ -40,6 +40,16 @@ const Footer = () => {
             setValue(newValue);
           }}
         >
+          <style>{`
+            @keyframes nav-pop {
+              0% { transform: scale(1); }
+              50% { transform: scale(1.2); }
+              100% { transform: scale(1); }
+            }
+            .nav-active-pop {
+              animation: nav-pop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            }
+          `}</style>
           <Stack direction="row" spacing={3}>
             <div
               style={{
@@ -54,6 +64,7 @@ const Footer = () => {
                     <img
                       src={value === "/" ? homeColor : home}
                       alt="Home Icon"
+                      className={value === "/" ? "nav-active-pop" : ""}
                       style={{
                         width: "45px",
                         height: "45px",
@@ -79,6 +90,7 @@ const Footer = () => {
                     <img
                       src={value === "/donation" ? donationColor : donation}
                       alt="User List Icon"
+                      className={value === "/donation" ? "nav-active-pop" : ""}
                       style={{
                         marginTop: "15px",
                         width: "50px",
@@ -103,6 +115,7 @@ const Footer = () => {
                     <img
                       src={value === "/showUserPublic" ? userListColor : userList}
                       alt="User List Icon"
+                      className={value === "/showUserPublic" ? "nav-active-pop" : ""}
                       style={{
                         width: "45px",
                         height: "35px",
@@ -126,6 +139,7 @@ const Footer = () => {
                     <img
                       src={value === "/login" ? loginColor : login}
                       alt="Login Icon"
+                      className={value === "/login" ? "nav-active-pop" : ""}
                       style={{
                         width: "25px",
                         height: "25px",
