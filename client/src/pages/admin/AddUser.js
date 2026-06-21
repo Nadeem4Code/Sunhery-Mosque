@@ -38,6 +38,7 @@ const AddUser = () => {
           justifyContent: "center",
           alignItems: "center",
           background: `linear-gradient(135deg, #DF98FA 0%, #9055FF 100%)`,
+          borderRadius: "5px"
         }}
       >
         <AddRoundedIcon
@@ -55,6 +56,9 @@ const AddUser = () => {
         open={open}
         onClose={handleClose}
         TransitionComponent={Transition}
+        PaperProps={{
+          style: { borderRadius: "5px" }
+        }}
       >
         <DialogTitle>
           <div

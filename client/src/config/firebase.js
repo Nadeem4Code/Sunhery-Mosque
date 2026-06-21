@@ -36,17 +36,19 @@ const signInWithGoogle = async () => {
     
     // Sync Google user with MongoDB
     try {
-      await axios.get(`${API_URL}/uid/${user.uid}`);
+      const response = await axios.get(`${API_URL}/uid/${user.uid}`);
+      localStorage.setItem("mongoUser", JSON.stringify(response.data));
     } catch (err) {
       if (err.response && err.response.status === 404) {
         // Not found, register as a normal user
-        await axios.post(`${API_URL}/register`, {
+        const response = await axios.post(`${API_URL}/register`, {
           uid: user.uid,
           userName: user.displayName || "Google User",
           email: user.email,
           role: "user",
           phoneNumber: "0000000000",
         });
+        localStorage.setItem("mongoUser", JSON.stringify(response.data));
       } else {
         console.error("Error syncing Google user with MongoDB", err);
       }
@@ -54,6 +56,37 @@ const signInWithGoogle = async () => {
   } catch (err) {
     console.error(err);
     alert(err.message);
+  }
+};
+
+const signInWithGoogleAsAdmin = async () => {
+  try {
+    const res = await signInWithPopup(auth, googleProvider);
+    const user = res.user;
+    
+    // Sync Google user with MongoDB as admin
+    try {
+      const response = await axios.get(`${API_URL}/uid/${user.uid}`);
+      localStorage.setItem("mongoUser", JSON.stringify(response.data));
+    } catch (err) {
+      if (err.response && err.response.status === 404) {
+        // Not found, register as admin
+        const response = await axios.post(`${API_URL}/register`, {
+          uid: user.uid,
+          userName: user.displayName || "Google Admin",
+          email: user.email,
+          role: "admin",
+          phoneNumber: "0000000000",
+        });
+        localStorage.setItem("mongoUser", JSON.stringify(response.data));
+      } else {
+        console.error("Error syncing Google user with MongoDB", err);
+      }
+    }
+  } catch (err) {
+    console.error(err);
+    alert(err.message);
+    throw err;
   }
 };
 
@@ -74,7 +107,7 @@ const registerWithEmailAndPassword = async (userName, email, password, role = "a
     const user = res.user;
     
     // Call backend to create user in MongoDB with admin/specified role
-    await axios.post(`${API_URL}/register`, {
+    const response = await axios.post(`${API_URL}/register`, {
       uid: user.uid,
       userName,
       email,
@@ -82,6 +115,7 @@ const registerWithEmailAndPassword = async (userName, email, password, role = "a
       phoneNumber,
       fatherName
     });
+    localStorage.setItem("mongoUser", JSON.stringify(response.data));
   } catch (err) {
     console.error(err);
     alert(err.message);
@@ -139,8 +173,9 @@ const registerNormalUserWithDonation = async (userName, email, password, phoneNu
     }
 
     // Save donation data
-    await axios.put(`${API_URL}/${mongoUser.id}`, updatedData);
-    return mongoUser;
+    const finalRes = await axios.put(`${API_URL}/${mongoUser.id}`, updatedData);
+    localStorage.setItem("mongoUser", JSON.stringify(finalRes.data));
+    return finalRes.data;
   } catch (err) {
     console.error(err);
     alert(err.message);
@@ -161,19 +196,20 @@ const sendPasswordReset = async (email) => {
 
 // Logout
 const logout = () => {
+  localStorage.removeItem("mongoUser");
   signOut(auth);
 };
 
 const API_URL = "http://localhost:3001/books";
 
 // Create Task
-const createTask = async (userName, phoneNumber, fatherName, year, month, day, amount) => {
+const createTask = async (userName, phoneNumber, fatherName, year, month, day, amount, purpose = null) => {
   try {
     const bookData = {
       userName,
       phoneNumber,
       fatherName,
-      mosque: [
+      mosque: (!purpose || purpose.toLowerCase() === "mosque") ? [
         {
           year,
           months: [
@@ -184,8 +220,8 @@ const createTask = async (userName, phoneNumber, fatherName, year, month, day, a
             },
           ],
         },
-      ],
-      imam: [
+      ] : [],
+      imam: (!purpose || purpose.toLowerCase() === "imam") ? [
         {
           year,
           months: [
@@ -196,7 +232,7 @@ const createTask = async (userName, phoneNumber, fatherName, year, month, day, a
             },
           ],
         },
-      ],
+      ] : [],
     };
 
     const response = await axios.post(API_URL, bookData);
@@ -266,6 +302,7 @@ const registerUserBeforePayment = async (userName, email, password, phoneNumber,
       phoneNumber,
       fatherName
     });
+    localStorage.setItem("mongoUser", JSON.stringify(response.data));
     return response.data;
   } catch (err) {
     console.error("Error in registerUserBeforePayment:", err);
@@ -317,6 +354,7 @@ const logDonationForLoggedInUser = async (uid, userName, phoneNumber, fatherName
 
     // 3. Save donation data
     const updateResponse = await axios.put(`${API_URL}/${mongoUser.id}`, updatedData);
+    localStorage.setItem("mongoUser", JSON.stringify(updateResponse.data));
     return updateResponse.data;
   } catch (error) {
     console.error("Error logging donation for logged in user:", error);
@@ -350,6 +388,7 @@ const logDonationForLoggedInUser = async (uid, userName, phoneNumber, fatherName
       }
       
       const updateResponse = await axios.put(`${API_URL}/${mongoUser.id}`, updatedData);
+      localStorage.setItem("mongoUser", JSON.stringify(updateResponse.data));
       return updateResponse.data;
     }
     throw error;
@@ -361,6 +400,7 @@ export {
   auth,
   db,
   signInWithGoogle,
+  signInWithGoogleAsAdmin,
   logInWithEmailAndPassword,
   registerWithEmailAndPassword,
   registerNormalUserWithDonation,

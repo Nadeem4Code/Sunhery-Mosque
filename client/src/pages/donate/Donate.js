@@ -191,8 +191,39 @@ const Donate = () => {
   // Sync details from current user if logged in
   useEffect(() => {
     if (auth.currentUser) {
-      setUserName(auth.currentUser.displayName || "");
-      setEmail(auth.currentUser.email || "");
+      // 1. Try to load from localStorage first for instant display
+      const savedUser = localStorage.getItem("mongoUser");
+      if (savedUser) {
+        try {
+          const u = JSON.parse(savedUser);
+          if (u.userName) setUserName(u.userName);
+          if (u.phoneNumber && u.phoneNumber !== "0000000000") setPhoneNumber(u.phoneNumber);
+          if (u.fatherName) setFatherName(u.fatherName);
+          if (u.email) setEmail(u.email);
+        } catch (e) {
+          console.error("Error parsing saved mongoUser", e);
+        }
+      }
+
+      // 2. Fetch fresh data from backend
+      axios.get(`${API_URL}/uid/${auth.currentUser.uid}`)
+        .then((res) => {
+          const u = res.data;
+          if (u.userName) setUserName(u.userName);
+          if (u.phoneNumber && u.phoneNumber !== "0000000000") setPhoneNumber(u.phoneNumber);
+          if (u.fatherName) setFatherName(u.fatherName);
+          if (u.email) setEmail(u.email);
+          
+          // Save fresh data to local storage
+          localStorage.setItem("mongoUser", JSON.stringify(u));
+        })
+        .catch((err) => {
+          console.error("Donate: Failed to fetch fresh user details", err);
+          if (!savedUser) {
+            setUserName(auth.currentUser.displayName || "");
+            setEmail(auth.currentUser.email || "");
+          }
+        });
     }
   }, []);
 
@@ -340,7 +371,8 @@ const Donate = () => {
             year,
             month,
             day,
-            Number(amount)
+            Number(amount),
+            purpose
           );
         }
 
@@ -413,7 +445,8 @@ const Donate = () => {
                   year,
                   month,
                   day,
-                  Number(amount)
+                  Number(amount),
+                  purpose
                 );
               }
 

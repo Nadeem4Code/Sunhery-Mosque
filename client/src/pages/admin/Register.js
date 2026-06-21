@@ -10,7 +10,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 // Importing from the firebase file
 
-import { auth,registerWithEmailAndPassword,signInWithGoogle } from "../../config/firebase";
+import { auth,registerWithEmailAndPassword,signInWithGoogleAsAdmin } from "../../config/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
 
 const Register = () => {
@@ -21,6 +21,19 @@ const Register = () => {
   const [user, loading] = useAuthState(auth);
 
   const navigate = useNavigate();
+
+  const handleGoogleRegister = async () => {
+    if (adminKey !== "ADMIN123") {
+      alert("Invalid Admin Registration Key! Only administrators can register here. If you are a donor, please use the donation page.");
+      return;
+    }
+    try {
+      await signInWithGoogleAsAdmin();
+    } catch (err) {
+      console.error("Google Admin Register failed:", err);
+    }
+  };
+
   const register = () => {
     if (!name) {
       alert("Please enter name");
@@ -96,7 +109,7 @@ const Register = () => {
           </Typography>
           <div style={{ marginTop: "20px" }}>
             <Button
-              onClick={signInWithGoogle}
+              onClick={handleGoogleRegister}
               variant="contained"
               style={{
                 background: "#FFFFFF",

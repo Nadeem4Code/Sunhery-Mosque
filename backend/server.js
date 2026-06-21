@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
+const expenditureRoutes = require('./routes/expenditureRoutes');
 const errorHandler = require('./middlewares/errorHandler');
 
 // Load environment variables
@@ -27,6 +28,7 @@ app.use((req, res, next) => {
 // Routes
 // Mounted on /books for backward compatibility with the frontend
 app.use('/books', userRoutes);
+app.use('/expenditures', expenditureRoutes);
 
 // 404 handler
 app.use((req, res, next) => {

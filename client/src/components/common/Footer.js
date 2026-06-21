@@ -6,6 +6,9 @@ import BottomNavigation from "@mui/material/BottomNavigation";
 import BottomNavigationAction from "@mui/material/BottomNavigationAction";
 import Paper from "@mui/material/Paper";
 import { Stack } from "@mui/material";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth } from "../../config/firebase";
+import axios from "axios";
 
 // Icons
 import home from "../../assets/icons/home.svg";
@@ -20,10 +23,39 @@ import donationColor from "../../assets/icons/donationColor.svg";
 const Footer = () => {
   const location = useLocation();
   const [value, setValue] = React.useState(location.pathname);
+  const [user] = useAuthState(auth);
+  const [mongoUser, setMongoUser] = React.useState(null);
 
   React.useEffect(() => {
     setValue(location.pathname);
   }, [location]);
+
+  React.useEffect(() => {
+    if (user) {
+      axios
+        .get(`http://localhost:3001/books/uid/${user.uid}`)
+        .then((res) => {
+          setMongoUser(res.data);
+        })
+        .catch((err) => {
+          console.error("Footer check failed:", err);
+        });
+    } else {
+      setMongoUser(null);
+    }
+  }, [user]);
+
+  let targetLink = "/login";
+  let isTargetActive = value === "/login";
+  if (user && mongoUser) {
+    if (mongoUser.role === "admin") {
+      targetLink = "/dashboard";
+      isTargetActive = value === "/dashboard";
+    } else {
+      targetLink = `/user/${mongoUser.id}`;
+      isTargetActive = value.startsWith("/user/");
+    }
+  }
 
   return (
     <Box sx={{ pb: 7 }}>
@@ -140,14 +172,14 @@ const Footer = () => {
                 justifyContent: "center",
               }}
             >
-              <NavLink to="/login">
+              <NavLink to={targetLink}>
                 <BottomNavigationAction
-                  label="Login"
+                  label={user && mongoUser ? (mongoUser.role === "admin" ? "Admin Dashboard" : "User Dashboard") : "Sign In"}
                   icon={
                     <img
-                      src={value === "/login" ? loginColor : login}
+                      src={isTargetActive ? loginColor : login}
                       alt="Login Icon"
-                      className={value === "/login" ? "nav-active-pop" : ""}
+                      className={isTargetActive ? "nav-active-pop" : ""}
                       style={{
                         width: "25px",
                         height: "25px",

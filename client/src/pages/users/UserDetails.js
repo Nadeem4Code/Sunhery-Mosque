@@ -4,7 +4,6 @@ import { useParams } from "react-router-dom";
 import { getTaskById } from "../../config/firebase";
 
 // Loader
-
 import CircularProgress from "@mui/material/CircularProgress";
 
 // Card
@@ -17,18 +16,21 @@ import Grid from "@mui/material/Grid";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import Box from "@mui/material/Box";
 
 const UserDetails = () => {
   const params = useParams();
 
   const [filterYear, setFilterYear] = useState(""); // State for selected year filter
+  const [activeTab, setActiveTab] = useState(0); // 0 = Mosque Fund, 1 = Imam Fund
 
   // Firebase
   const [tasks, setTask] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Data fetching using firebase
-
   useEffect(() => {
     // Fetch the task by ID and update the state
     getTaskById(params.id)
@@ -60,9 +62,12 @@ const UserDetails = () => {
     ];
     return months[monthNumber - 1] || "";
   };
-  // Extract unique years from tasks data
+
+  // Extract unique years from tasks data (both mosque and imam)
+  const mosqueYears = tasks?.mosque?.map((year) => year.year) || [];
+  const imamYears = tasks?.imam?.map((year) => year.year) || [];
   const availableYears = Array.from(
-    new Set(tasks?.mosque?.map((year) => year.year))
+    new Set([...mosqueYears, ...imamYears].filter(Boolean))
   );
 
   // Handle year filter change
@@ -88,25 +93,27 @@ const UserDetails = () => {
         <div style={{ marginTop: "100px" }}>
           <Card>
             <CardContent>
-              <Typography
-                style={{
-                  fontSize: "18px",
-                  fontFamily: "Poppins",
-                  fontWeight: "600",
-                }}
-              >
-                {tasks.userName}
-              </Typography>
-              <Typography
-                style={{
-                  fontSize: "14px",
-                  fontFamily: "Poppins",
-                  fontWeight: "500",
-                  color: "#8789A3",
-                }}
-              >
-                {tasks.fatherName}
-              </Typography>
+              <Box>
+                <Typography
+                  style={{
+                    fontSize: "18px",
+                    fontFamily: "Poppins",
+                    fontWeight: "600",
+                  }}
+                >
+                  {tasks.userName}
+                </Typography>
+                <Typography
+                  style={{
+                    fontSize: "14px",
+                    fontFamily: "Poppins",
+                    fontWeight: "500",
+                    color: "#8789A3",
+                  }}
+                >
+                  {tasks.fatherName}
+                </Typography>
+              </Box>
 
               {/* Filter container */}
               <div
@@ -145,73 +152,172 @@ const UserDetails = () => {
                 </FormControl>
               </div>
 
-              {tasks?.mosque?.map(
-                (yearData) =>
-                  // Apply year filter if selected, or display all years
-                  (!filterYear || filterYear === yearData.year) && (
-                    <div key={yearData.year} style={{ marginTop: "20px" }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center", // Center vertically
-                          fontSize: "18px",
-                          fontFamily: "Poppins",
-                          fontWeight: "600",
-                          color: `#9055FF`,
-                          marginBottom: "10px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            marginRight: "8px",
-                            color: "black",
-                          }}
-                        >
-                          Year
-                        </span>
-                        <KeyboardArrowRightRoundedIcon
-                          style={{
-                            width: "20px",
-                            height: "20px",
-                            color: "#8789A3",
-                          }}
-                        />
-                        {yearData.year}
-                      </div>
-                      <Grid container>
-                        {yearData?.months?.map((month, index) => (
-                          <Grid item xs={12} md={3} key={month.month}>
-                            <div>
-                              <Typography
-                                style={{
-                                  fontSize: "15px",
-                                  fontFamily: "Poppins",
-                                  fontWeight: "600",
-                                  backgroundColor: "#eaf9f6",
-                                  color: "#19b89e",
+              {/* TABS to switch between Mosque and Imam Funds */}
+              <Box sx={{ borderBottom: 1, borderColor: "divider", mt: 3, mb: 2 }}>
+                <Tabs
+                  value={activeTab}
+                  onChange={(e, val) => setActiveTab(val)}
+                  textColor="secondary"
+                  indicatorColor="secondary"
+                  aria-label="donation fund tabs"
+                >
+                  <Tab label="Mosque Fund" style={{ fontFamily: "Poppins", fontWeight: "600", textTransform: "none" }} />
+                  <Tab label="Imam & Staff Fund" style={{ fontFamily: "Poppins", fontWeight: "600", textTransform: "none" }} />
+                </Tabs>
+              </Box>
 
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "space-between", // To space items horizontally
-                                  marginLeft: "4px",
-                                  marginTop: "5px",
-                                  marginBottom: "5px",
-                                  borderRadius: "5px",
-                                }}
-                              >
-                                <div style={{ paddingLeft: "10px" }}>
-                                  {month.day}-{getMonthName(month.month)}
+              {/* Render Mosque Fund Contributions */}
+              {activeTab === 0 && (
+                tasks?.mosque && tasks.mosque.length > 0 ? (
+                  tasks.mosque.map(
+                    (yearData) =>
+                      // Apply year filter if selected, or display all years
+                      (!filterYear || filterYear === yearData.year) && (
+                        <div key={yearData.year} style={{ marginTop: "20px" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center", // Center vertically
+                              fontSize: "18px",
+                              fontFamily: "Poppins",
+                              fontWeight: "600",
+                              color: `#9055FF`,
+                              marginBottom: "10px",
+                            }}
+                          >
+                            <span
+                              style={{
+                                marginRight: "8px",
+                                color: "black",
+                              }}
+                            >
+                              Year
+                            </span>
+                            <KeyboardArrowRightRoundedIcon
+                              style={{
+                                width: "20px",
+                                height: "20px",
+                                color: "#8789A3",
+                              }}
+                            />
+                            {yearData.year}
+                          </div>
+                          <Grid container>
+                            {yearData?.months?.map((month, index) => (
+                              <Grid item xs={12} md={3} key={month.month}>
+                                <div>
+                                  <Typography
+                                    style={{
+                                      fontSize: "15px",
+                                      fontFamily: "Poppins",
+                                      fontWeight: "600",
+                                      backgroundColor: "#eaf9f6",
+                                      color: "#19b89e",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "space-between", // To space items horizontally
+                                      marginLeft: "4px",
+                                      marginTop: "5px",
+                                      marginBottom: "5px",
+                                      borderRadius: "5px",
+                                    }}
+                                  >
+                                    <div style={{ paddingLeft: "10px" }}>
+                                      {month.day}-{getMonthName(month.month)}
+                                    </div>
+                                    <div style={{ paddingRight: "10px" }}>
+                                      {month.amount} &#8377;
+                                    </div>
+                                  </Typography>
                                 </div>
-                                <div style={{ paddingRight: "10px" }}>
-                                  {month.amount} &#8377;
-                                </div>
-                              </Typography>
-                            </div>
+                              </Grid>
+                            ))}
                           </Grid>
-                        ))}
-                      </Grid>
-                    </div>
+                        </div>
+                      )
                   )
+                ) : (
+                  <Typography style={{ fontFamily: "Poppins", padding: "20px", color: "#8789A3" }}>
+                    No Mosque contributions found.
+                  </Typography>
+                )
+              )}
+
+              {/* Render Imam Fund Contributions */}
+              {activeTab === 1 && (
+                tasks?.imam && tasks.imam.length > 0 ? (
+                  tasks.imam.map(
+                    (yearData) =>
+                      // Apply year filter if selected, or display all years
+                      (!filterYear || filterYear === yearData.year) && (
+                        <div key={yearData.year} style={{ marginTop: "20px" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center", // Center vertically
+                              fontSize: "18px",
+                              fontFamily: "Poppins",
+                              fontWeight: "600",
+                              color: `#9055FF`,
+                              marginBottom: "10px",
+                            }}
+                          >
+                            <span
+                              style={{
+                                marginRight: "8px",
+                                color: "black",
+                              }}
+                            >
+                              Year
+                            </span>
+                            <KeyboardArrowRightRoundedIcon
+                              style={{
+                                width: "20px",
+                                height: "20px",
+                                color: "#8789A3",
+                              }}
+                            />
+                            {yearData.year}
+                          </div>
+                          <Grid container>
+                            {yearData?.months?.map((month, index) => (
+                              <Grid item xs={12} md={3} key={month.month}>
+                                <div>
+                                  <Typography
+                                    style={{
+                                      fontSize: "15px",
+                                      fontFamily: "Poppins",
+                                      fontWeight: "600",
+                                      backgroundColor: "#eaf9f6",
+                                      color: "#19b89e",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "space-between", // To space items horizontally
+                                      marginLeft: "4px",
+                                      marginTop: "5px",
+                                      marginBottom: "5px",
+                                      borderRadius: "5px",
+                                    }}
+                                  >
+                                    <div style={{ paddingLeft: "10px" }}>
+                                      {month.day}-{getMonthName(month.month)}
+                                    </div>
+                                    <div style={{ paddingRight: "10px" }}>
+                                      {month.amount} &#8377;
+                                    </div>
+                                  </Typography>
+                                </div>
+                              </Grid>
+                            ))}
+                          </Grid>
+                        </div>
+                      )
+                  )
+                ) : (
+                  <Typography style={{ fontFamily: "Poppins", padding: "20px", color: "#8789A3" }}>
+                    No Imam contributions found.
+                  </Typography>
+                )
               )}
             </CardContent>
           </Card>

@@ -1,4 +1,4 @@
-import { createContext, useState, useCallback } from "react";
+import { createContext, useState, useCallback, useMemo } from "react";
 import axios from "axios";
 
 const UserContext = createContext();
@@ -7,77 +7,77 @@ function Provider({ children }) {
   const [books, setBooks] = useState([]);
 
   const fetchBooks = useCallback(async () => {
-    const response = await axios.get("http://localhost:3001/books");
-
-    setBooks(response.data);
+    try {
+      const response = await axios.get("http://localhost:3001/books");
+      setBooks(response.data);
+    } catch (error) {
+      console.error("Error fetching books:", error);
+    }
   }, []);
 
-  const editBookById = async (id, newTitle, newNumber, fatherName) => {
-    const response = await axios.put(`http://localhost:3001/books/${id}`, {
-      title: newTitle,
-      number: newNumber,
-      father: fatherName,
-    });
+  const editBookById = useCallback(async (id, newTitle, newNumber, fatherName) => {
+    try {
+      const response = await axios.put(`http://localhost:3001/books/${id}`, {
+        title: newTitle,
+        number: newNumber,
+        father: fatherName,
+      });
 
-    const updatedBooks = books.map((book) => {
-      if (book.id === id) {
-        return { ...book, ...response.data };
-      }
+      setBooks((prevBooks) =>
+        prevBooks.map((book) => (book.id === id ? { ...book, ...response.data } : book))
+      );
+    } catch (error) {
+      console.error("Error editing book:", error);
+    }
+  }, []);
 
-      return book;
-    });
-
-    setBooks(updatedBooks);
-  };
-
-  const deleteBookById = async (id) => {
-    await axios.delete(`http://localhost:3001/books/${id}`);
-
-    const updatedBooks = books.filter((book) => {
-      return book.id !== id;
-    });
-
-    setBooks(updatedBooks);
-  };
+  const deleteBookById = useCallback(async (id) => {
+    try {
+      await axios.delete(`http://localhost:3001/books/${id}`);
+      setBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
+    } catch (error) {
+      console.error("Error deleting book:", error);
+    }
+  }, []);
 
   // date
-  let newDate = new Date();
+  const newDate = new Date();
+  const date = newDate.getDate();
+  const month = newDate.getMonth() + 1;
 
-  let date = newDate.getDate();
-  let month = newDate.getMonth() + 1;
-
-
-const createBook = async (title, number, fatherName, year,amount) => {
-  const response = await axios.post("http://localhost:3001/books", {
-    title,
-    number,
-    fatherName,
-    years: [
-      {
-        year,
-        months: [
+  const createBook = useCallback(async (title, number, fatherName, year, amount) => {
+    try {
+      const response = await axios.post("http://localhost:3001/books", {
+        title,
+        number,
+        fatherName,
+        years: [
           {
-            date,
-            month,
-            amount, // Add the amount option here
+            year,
+            months: [
+              {
+                date,
+                month,
+                amount,
+              },
+            ],
           },
         ],
-      },
-    ],
-  });
+      });
 
-  const updatedBooks = [...books, response.data];
-  setBooks(updatedBooks);
-};
+      setBooks((prevBooks) => [...prevBooks, response.data]);
+    } catch (error) {
+      console.error("Error creating book:", error);
+    }
+  }, [date, month]);
 
-
-  const valueToShare = {
+  const valueToShare = useMemo(() => ({
     books,
     deleteBookById,
     editBookById,
     createBook,
     fetchBooks,
-  };
+  }), [books, deleteBookById, editBookById, createBook, fetchBooks]);
 
   return (
     <UserContext.Provider value={valueToShare}>{children}</UserContext.Provider>

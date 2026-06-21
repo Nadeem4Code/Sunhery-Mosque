@@ -136,7 +136,7 @@ function ShowUserForMosqueAdmin() {
                     ) {
                       return true;
                     } else if (
-                      post.fatherName
+                      (post.fatherName || "")
                         .toLowerCase()
                         .includes(query.toLowerCase())
                     ) {

@@ -39,6 +39,7 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import TextField from "@mui/material/TextField";
+import IconButton from "@mui/material/IconButton";
 
 // Slide
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -198,6 +199,37 @@ const AddAmountForImam = () => {
       .catch((error) => {
         console.error("Error updating task:", error);
       });
+  };
+
+  const handleDeleteMonth = (targetYear, monthIndex) => {
+    if (!window.confirm("Are you sure you want to delete this donation record?")) {
+      return;
+    }
+
+    const updatedTaskData = { ...tasks };
+    const yearIndex = updatedTaskData.imam.findIndex(
+      (y) => y.year === targetYear
+    );
+
+    if (yearIndex !== -1) {
+      const yearData = updatedTaskData.imam[yearIndex];
+      yearData.months.splice(monthIndex, 1);
+
+      // If no months are left in this year, remove the year object entirely
+      if (yearData.months.length === 0) {
+        updatedTaskData.imam.splice(yearIndex, 1);
+      }
+
+      updateTask(params.id, updatedTaskData)
+        .then(() => {
+          toast.success("Donation record deleted successfully!");
+          setTask(updatedTaskData);
+        })
+        .catch((error) => {
+          console.error("Error deleting donation record:", error);
+          toast.error("Failed to delete donation record. Please try again.");
+        });
+    }
   };
 
   // Function for react toastify
@@ -433,8 +465,15 @@ const AddAmountForImam = () => {
                                 <div style={{ paddingLeft: "10px" }}>
                                   {month?.day}-{getMonthName(month.month)}
                                 </div>
-                                <div style={{ paddingRight: "10px" }}>
-                                  {month?.amount} &#8377;
+                                <div style={{ paddingRight: "10px", display: "flex", alignItems: "center", gap: "6px" }}>
+                                  <span>{month?.amount} &#8377;</span>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleDeleteMonth(yearData.year, index)}
+                                    style={{ color: "#d32f2f", padding: 0 }}
+                                  >
+                                    <CloseRoundedIcon style={{ fontSize: "16px" }} />
+                                  </IconButton>
                                 </div>
                               </Typography>
                             </div>

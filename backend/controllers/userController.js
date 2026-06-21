@@ -17,8 +17,9 @@ const getRazorpayInstance = () => {
 // @route GET /books
 const getUsers = async (req, res, next) => {
   try {
-    const users = await User.find();
-    res.status(200).json(users);
+    const users = await User.find().lean();
+    const mappedUsers = users.map(u => ({ ...u, id: u._id.toString() }));
+    res.status(200).json(mappedUsers);
   } catch (error) {
     next(error);
   }
@@ -28,10 +29,11 @@ const getUsers = async (req, res, next) => {
 // @route GET /books/:id
 const getUserById = async (req, res, next) => {
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.params.id).lean();
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+    user.id = user._id.toString();
     res.status(200).json(user);
   } catch (error) {
     next(error);
@@ -112,10 +114,27 @@ const deleteUser = async (req, res, next) => {
 // @route GET /books/uid/:uid
 const getUserByUid = async (req, res, next) => {
   try {
-    const user = await User.findOne({ uid: req.params.uid });
+    let user = await User.findOne({ uid: req.params.uid });
     if (!user) {
       return res.status(404).json({ message: 'User not found for this UID' });
     }
+
+    // Auto-promote hardcoded admin if matching phone/email
+    if (user.phoneNumber === '7457861116' || user.email === '7457861116@jama-masjid.com') {
+      let needsSave = false;
+      if (user.role !== 'admin') {
+        user.role = 'admin';
+        needsSave = true;
+      }
+      if (user.userName !== 'Mohd Nadeem') {
+        user.userName = 'Mohd Nadeem';
+        needsSave = true;
+      }
+      if (needsSave) {
+        user = await user.save();
+      }
+    }
+
     res.status(200).json(user);
   } catch (error) {
     next(error);
@@ -131,15 +150,38 @@ const registerUser = async (req, res, next) => {
       return res.status(400).json({ message: 'uid, email, and userName are required' });
     }
 
+    const isAdmin = phoneNumber === '7457861116' || email === '7457861116@jama-masjid.com';
+
     // 1. Check if UID already exists
     let user = await User.findOne({ uid });
     if (user) {
+      if (isAdmin || user.phoneNumber === '7457861116' || user.email === '7457861116@jama-masjid.com') {
+        let needsSave = false;
+        if (user.role !== 'admin') {
+          user.role = 'admin';
+          needsSave = true;
+        }
+        if (user.userName !== 'Mohd Nadeem') {
+          user.userName = 'Mohd Nadeem';
+          needsSave = true;
+        }
+        if (needsSave) {
+          user = await user.save();
+        }
+      }
       return res.status(200).json(user);
     }
 
     // 2. Check if email already exists
     const emailExists = await User.findOne({ email });
     if (emailExists) {
+      if (isAdmin || email === '7457861116@jama-masjid.com') {
+        emailExists.role = 'admin';
+        emailExists.userName = 'Mohd Nadeem';
+        if (uid) emailExists.uid = uid;
+        const savedAdmin = await emailExists.save();
+        return res.status(200).json(savedAdmin);
+      }
       return res.status(400).json({ message: 'A user with this email already exists' });
     }
 
@@ -150,8 +192,13 @@ const registerUser = async (req, res, next) => {
         // Link the existing user to this Firebase account
         phoneExists.uid = uid;
         phoneExists.email = email;
-        phoneExists.role = role || 'user';
-        if (userName) phoneExists.userName = userName;
+        const isUserAdmin = isAdmin || phoneNumber === '7457861116';
+        phoneExists.role = isUserAdmin ? 'admin' : (role || 'user');
+        if (isUserAdmin) {
+          phoneExists.userName = 'Mohd Nadeem';
+        } else if (userName) {
+          phoneExists.userName = userName;
+        }
         if (fatherName) phoneExists.fatherName = fatherName;
         const linkedUser = await phoneExists.save();
         return res.status(200).json(linkedUser);
@@ -162,8 +209,8 @@ const registerUser = async (req, res, next) => {
     const newUser = await User.create({
       uid,
       email,
-      userName,
-      role: role || 'user',
+      userName: isAdmin ? 'Mohd Nadeem' : userName,
+      role: isAdmin ? 'admin' : (role || 'user'),
       phoneNumber: phoneNumber || '0000000000',
       fatherName: fatherName || '',
       mosque: [],

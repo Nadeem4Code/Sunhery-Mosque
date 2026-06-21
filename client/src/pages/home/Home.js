@@ -4,6 +4,7 @@ import Grid from "@mui/material/Grid";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import UserContext from "../../context/BooksContext";
+import axios from "axios";
 
 // Importing the react router
 import { Outlet } from "react-router-dom";
@@ -214,19 +215,43 @@ const Home = () => {
   
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
+  const [expenditures, setExpenditures] = useState([]);
 
-  // Detailed lists of expenses for transparency
-  const mosqueExpenses = [
-    { icon: "💡", item: "Electricity & Utility Bills", category: "Operations", cost: 15000 },
-    { icon: "🎨", item: "Wall Paint & Carpet Renovation", category: "Maintenance", cost: 20000 },
-    { icon: "🧼", item: "Cleaning Supplies & Sanitation", category: "Operations", cost: 10000 },
-  ];
+  React.useEffect(() => {
+    axios.get("http://localhost:3001/expenditures")
+      .then((res) => {
+        setExpenditures(res.data || []);
+      })
+      .catch((err) => {
+        console.error("Failed to load expenditures for home page:", err);
+      });
+  }, []);
 
-  const imamExpenses = [
-    { icon: "👳", item: "Imam Monthly Allowance", category: "Salaries", cost: 18000 },
-    { icon: "🔊", item: "Muazzin Monthly Allowance", category: "Salaries", cost: 5000 },
-    { icon: "📦", item: "Staff Welfare & General Support", category: "Operations", cost: 2000 },
-  ];
+  // Detailed lists of expenses for transparency dynamically mapped
+  const mosqueExpenses = expenditures
+    .filter((exp) => exp.category !== "Imam")
+    .map((exp) => {
+      let icon = "🪙";
+      if (exp.category === "Construction") icon = "🏗️";
+      else if (exp.category === "Maintenance & Repair") icon = "🔧";
+      else if (exp.category === "Utilities & Bills") icon = "💡";
+      
+      return {
+        icon,
+        item: exp.description || exp.category,
+        category: exp.category,
+        cost: exp.amount
+      };
+    });
+
+  const imamExpenses = expenditures
+    .filter((exp) => exp.category === "Imam")
+    .map((exp) => ({
+      icon: "👳",
+      item: exp.description || exp.category,
+      category: exp.category,
+      cost: exp.amount
+    }));
 
   // Calculate total mosque and imam donations dynamically
   let totalMosqueReceived = 0;
@@ -275,9 +300,14 @@ const Home = () => {
     });
   }
 
-  // Configured spent amounts (static constants for transparency)
-  const MOSQUE_SPENT = 45000;
-  const IMAM_SPENT = 25000;
+  // Dynamic spent amounts from fetched expenditures
+  const MOSQUE_SPENT = expenditures
+    .filter((exp) => exp.category !== "Imam")
+    .reduce((sum, exp) => sum + Number(exp.amount || 0), 0);
+
+  const IMAM_SPENT = expenditures
+    .filter((exp) => exp.category === "Imam")
+    .reduce((sum, exp) => sum + Number(exp.amount || 0), 0);
 
   // Calculate percentages (safety limit to max 100%)
   const mosquePercent = totalMosqueReceived > 0 
