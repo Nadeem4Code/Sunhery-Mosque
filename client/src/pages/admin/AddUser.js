@@ -15,42 +15,51 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const AddUser = () => {
-  const [open, setOpen] = React.useState(false);
+const AddUser = ({ open: propOpen, onClose: propOnClose }) => {
+  const [localOpen, setLocalOpen] = React.useState(false);
 
-  
+  const isControlled = propOpen !== undefined;
+  const open = isControlled ? propOpen : localOpen;
 
   const handleClickOpen = () => {
-    setOpen(true);
+    if (!isControlled) {
+      setLocalOpen(true);
+    }
   };
 
   const handleClose = () => {
-    setOpen(false);
+    if (isControlled) {
+      if (propOnClose) propOnClose();
+    } else {
+      setLocalOpen(false);
+    }
   };
 
   return (
     <div>
-      <Avatar
-        style={{
-          width: "45px",
-          height: "45px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          background: `linear-gradient(135deg, #DF98FA 0%, #9055FF 100%)`,
-          borderRadius: "5px"
-        }}
-      >
-        <AddRoundedIcon
-          onClick={handleClickOpen}
+      {!isControlled && (
+        <Avatar
           style={{
-            height: "45px",
             width: "45px",
-            color: "white",
-            cursor: "pointer",
+            height: "45px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            background: `linear-gradient(135deg, #DF98FA 0%, #9055FF 100%)`,
+            borderRadius: "5px"
           }}
-        />
-      </Avatar>
+        >
+          <AddRoundedIcon
+            onClick={handleClickOpen}
+            style={{
+              height: "45px",
+              width: "45px",
+              color: "white",
+              cursor: "pointer",
+            }}
+          />
+        </Avatar>
+      )}
 
       <Dialog
         open={open}

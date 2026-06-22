@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { getAllTasks, updateTask, deleteTask } from "../../config/firebase";
 
 import CircularProgress from "@mui/material/CircularProgress";
+import Skeleton from "@mui/material/Skeleton";
 
 import {
   Grid,
@@ -85,16 +86,44 @@ function ShowUser() {
 
   if (loading) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
-        <CircularProgress color="success" />
-      </div>
+      <Card style={{ boxShadow: "none", marginTop: "24px" }}>
+        {/* Search bar skeleton */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "center",
+            marginTop: "10px",
+            marginBottom: "20px",
+          }}
+        >
+          <Skeleton variant="rectangular" width={220} height={40} sx={{ borderRadius: "5px" }} />
+        </div>
+        <Card>
+          <CardContent>
+            <Skeleton variant="text" width="10%" height={24} sx={{ mb: 2 }} />
+            <Grid container spacing={2}>
+              {[1, 2, 3, 4, 5, 6].map((item) => (
+                <Grid key={item} item xs={12} md={6} sm={12}>
+                  <Box sx={{ width: "100%", display: "flex", alignItems: "center", py: 1 }}>
+                    <Skeleton variant="circular" width={50} height={50} sx={{ mr: 2 }} />
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Skeleton variant="text" width="60%" height={24} />
+                      <Skeleton variant="text" width="40%" height={16} />
+                      <Skeleton variant="text" width="50%" height={16} />
+                    </Box>
+                    <Box sx={{ display: "flex", gap: 1 }}>
+                      <Skeleton variant="rectangular" width={40} height={30} sx={{ borderRadius: "4px" }} />
+                      <Skeleton variant="rectangular" width={40} height={30} sx={{ borderRadius: "4px" }} />
+                    </Box>
+                  </Box>
+                  <Divider style={{ width: "100%" }} />
+                </Grid>
+              ))}
+            </Grid>
+          </CardContent>
+        </Card>
+      </Card>
     );
   }
   const handleQuery = (e) => {
@@ -102,7 +131,7 @@ function ShowUser() {
   };
 
   return (
-    <Box style={{ marginTop: "24px" }}>
+    <Box>
       {tasks.length === 0 ? (
         <Typography style={{ fontFamily: "Poppins", padding: "20px" }}>No Users available.</Typography>
       ) : (

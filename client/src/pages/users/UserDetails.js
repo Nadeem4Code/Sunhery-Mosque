@@ -5,6 +5,7 @@ import { getTaskById } from "../../config/firebase";
 
 // Loader
 import CircularProgress from "@mui/material/CircularProgress";
+import Skeleton from "@mui/material/Skeleton";
 
 // Card
 import Card from "@mui/material/Card";
@@ -79,15 +80,31 @@ const UserDetails = () => {
   return (
     <>
       {loading ? (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100vh",
-          }}
-        >
-          <CircularProgress color="success" />
+        <div style={{ marginTop: "100px" }}>
+          <Card>
+            <CardContent>
+              <Box sx={{ mb: 2 }}>
+                {/* Name Skeleton */}
+                <Skeleton variant="text" width="40%" height={32} sx={{ mb: 1 }} />
+                {/* Father Name Skeleton */}
+                <Skeleton variant="text" width="25%" height={20} />
+              </Box>
+              <Box sx={{ borderBottom: 1, borderColor: "divider", mt: 3, mb: 2, display: "flex", gap: 2 }}>
+                <Skeleton variant="rectangular" width={120} height={40} />
+                <Skeleton variant="rectangular" width={160} height={40} />
+              </Box>
+              <Box sx={{ mt: 3 }}>
+                <Skeleton variant="text" width="15%" height={28} sx={{ mb: 2 }} />
+                <Grid container spacing={2}>
+                  {[1, 2, 3, 4].map((item) => (
+                    <Grid item xs={12} md={3} key={item}>
+                      <Skeleton variant="rectangular" height={45} sx={{ borderRadius: "5px" }} />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            </CardContent>
+          </Card>
         </div>
       ) : (
         <div style={{ marginTop: "100px" }}>
@@ -204,7 +221,7 @@ const UserDetails = () => {
                           </div>
                           <Grid container>
                             {yearData?.months?.map((month, index) => (
-                              <Grid item xs={12} md={3} key={month.month}>
+                              <Grid item xs={12} md={3} key={index}>
                                 <div>
                                   <Typography
                                     style={{
@@ -281,7 +298,7 @@ const UserDetails = () => {
                           </div>
                           <Grid container>
                             {yearData?.months?.map((month, index) => (
-                              <Grid item xs={12} md={3} key={month.month}>
+                              <Grid item xs={12} md={3} key={index}>
                                 <div>
                                   <Typography
                                     style={{

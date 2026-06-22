@@ -1,0 +1,464 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Al-Noor Admin | Sunheri Mosque Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Hanken+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-on-surface": "#eaf1ff",
+                    "outline-variant": "#bfc8c8",
+                    "surface-bright": "#f8f9ff",
+                    "on-secondary-fixed": "#002113",
+                    "on-secondary-fixed-variant": "#005236",
+                    "on-secondary-container": "#00714d",
+                    "surface-tint": "#2e6767",
+                    "on-tertiary-fixed-variant": "#3e4943",
+                    "tertiary": "#26312c",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-low": "#eff4ff",
+                    "on-tertiary-fixed": "#131e19",
+                    "secondary": "#006c49",
+                    "secondary-container": "#6cf8bb",
+                    "primary": "#003535",
+                    "on-secondary": "#ffffff",
+                    "surface-dim": "#cbdbf5",
+                    "on-primary-container": "#85bdbc",
+                    "on-primary-fixed": "#002020",
+                    "on-surface": "#0b1c30",
+                    "tertiary-fixed-dim": "#bdcac1",
+                    "error-container": "#ffdad6",
+                    "primary-fixed-dim": "#98d1d0",
+                    "on-background": "#0b1c30",
+                    "background": "#f8f9ff",
+                    "primary-fixed": "#b4edec",
+                    "secondary-fixed-dim": "#4edea3",
+                    "tertiary-container": "#3c4842",
+                    "surface-container": "#e5eeff",
+                    "secondary-fixed": "#6ffbbe",
+                    "inverse-primary": "#98d1d0",
+                    "surface-container-high": "#dce9ff",
+                    "inverse-surface": "#213145",
+                    "outline": "#707978",
+                    "on-error": "#ffffff",
+                    "surface-variant": "#d3e4fe",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-container": "#a9b6ae",
+                    "tertiary-fixed": "#d9e6dd",
+                    "error": "#ba1a1a",
+                    "primary-container": "#0d4d4d",
+                    "on-error-container": "#93000a",
+                    "on-primary": "#ffffff",
+                    "surface-container-highest": "#d3e4fe",
+                    "on-surface-variant": "#404848",
+                    "on-primary-fixed-variant": "#104f4f",
+                    "surface": "#f8f9ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "base": "4px",
+                    "xs": "8px",
+                    "lg": "40px",
+                    "xl": "64px",
+                    "sm": "16px",
+                    "gutter": "24px",
+                    "margin-mobile": "16px",
+                    "container-max": "1280px",
+                    "md": "24px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Inter"],
+                    "headline-md": ["Hanken Grotesk"],
+                    "label-sm": ["Inter"],
+                    "headline-lg-mobile": ["Hanken Grotesk"],
+                    "headline-lg": ["Hanken Grotesk"],
+                    "label-md": ["Inter"],
+                    "body-md": ["Inter"],
+                    "display-lg": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid #E2E8F0;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .sidebar-active {
+            background-color: #6cf8bb; /* secondary-container */
+            color: #00714d; /* on-secondary-container */
+        }
+        /* Mobile Overlay */
+        #sidebar-overlay {
+            display: none;
+        }
+        #sidebar-overlay.active {
+            display: block;
+        }
+        @media (max-width: 1024px) {
+            #sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+            }
+            #sidebar.active {
+                transform: translateX(0);
+            }
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- Sidebar Overlay -->
+<div class="fixed inset-0 bg-black/50 z-[45] lg:hidden" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<!-- SideNavBar -->
+<aside class="bg-surface-container-lowest dark:bg-surface-container-low h-screen w-64 fixed left-0 top-0 border-r border-outline-variant dark:border-outline shadow-sm z-50 overflow-y-auto" id="sidebar">
+<div class="flex flex-col h-full py-6 px-4">
+<div class="mb-10 px-2 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">mosque</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-semibold text-primary dark:text-primary-fixed leading-tight">Al-Noor Admin</h1>
+<p class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold">Mosque Management</p>
+</div>
+</div>
+<button class="lg:hidden p-2 text-primary" onclick="toggleSidebar()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 bg-secondary-container text-on-secondary-container rounded-lg font-semibold transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md text-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-body-md text-body-md">Finance</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-body-md text-body-md">Donors</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">schedule</span>
+<span class="font-body-md text-body-md">Prayer Times</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">event</span>
+<span class="font-body-md text-body-md">Events</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-body-md text-body-md">Inventory</span>
+</a>
+</nav>
+<div class="mt-auto space-y-1 pt-6 border-t border-outline-variant">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+<span class="font-body-md text-body-md">Support</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-full lg:w-[calc(100%-256px)] h-16 bg-surface-bright/80 backdrop-blur-md border-b border-outline-variant flex justify-between items-center px-4 md:px-gutter z-40">
+<div class="flex items-center gap-4">
+<button class="lg:hidden p-2 text-primary" onclick="toggleSidebar()">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h2 class="font-headline-lg text-headline-md md:text-headline-lg font-bold text-primary dark:text-primary-fixed truncate">Admin Portal</h2>
+<div class="hidden lg:flex items-center bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant w-48 xl:w-80">
+<span class="material-symbols-outlined text-outline text-sm mr-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-label-md font-label-md w-full p-0" placeholder="Search data..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-2 md:gap-4">
+<nav class="hidden sm:flex items-center gap-4 lg:gap-6 mr-2 lg:mr-6">
+<a class="text-secondary border-b-2 border-secondary pb-1 font-bold font-label-md text-label-md" href="#">Analytics</a>
+<a class="hidden md:block text-on-surface-variant hover:text-primary font-label-md text-label-md" href="#">Reports</a>
+<a class="hidden md:block text-on-surface-variant hover:text-primary font-label-md text-label-md" href="#">Staff</a>
+</nav>
+<div class="flex items-center gap-1 md:gap-2">
+<button class="hover:bg-surface-container-low rounded-full p-2 transition-transform scale-95 active:opacity-80">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</button>
+<button class="hidden sm:block hover:bg-surface-container-low rounded-full p-2 transition-transform scale-95 active:opacity-80">
+<span class="material-symbols-outlined text-primary">translate</span>
+</button>
+</div>
+<div class="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-secondary overflow-hidden flex-shrink-0">
+<img alt="Administrator Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA42UfIB4ddX5kE0Dzv9yKJbBTzhb92b4RVCczYxmNyMwlTDbjFrdYvxYftIBRj0AOIGOJy7i5vjP-mxRLMo6_1u3X4Lh015foqAJA9GHYFx6KIERvyt1PSaBAr-2-9nb4oaw386kj6BFzviuJGncoPsmldTrrogXuS1fpjxvYcaMV___kJfotCVlEWYDBufGqaKZOTElOP-KT8JkMUbutleeglhvYf0W37E_9YAKkHnKu2KvLUVor7rEy5z1tRsHtXbNAa8iieFCA">
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="lg:ml-64 pt-20 md:pt-24 px-4 md:px-gutter pb-xl min-h-screen">
+<!-- Hero Section -->
+<section class="mb-lg flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+<div class="space-y-1">
+<p class="text-on-surface-variant font-label-md text-label-md flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary"></span> 
+                Welcome back, Mohd Nadeem
+            </p>
+<h1 class="font-display-lg text-headline-lg md:text-display-lg text-primary">Admin Dashboard</h1>
+</div>
+<div class="flex items-center gap-3 w-full md:w-auto">
+<div class="flex flex-1 md:flex-initial items-center bg-surface-container-lowest border border-outline-variant px-4 py-2 rounded-lg shadow-sm">
+<span class="material-symbols-outlined text-sm mr-2 text-outline">calendar_today</span>
+<span class="font-label-md text-label-md font-semibold">2026</span>
+<span class="material-symbols-outlined text-sm ml-auto md:ml-4 text-outline">expand_more</span>
+</div>
+<button class="bg-primary text-on-primary px-4 md:px-6 py-2 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">add</span>
+<span class="whitespace-nowrap">New Entry</span>
+</button>
+</div>
+</section>
+<!-- Metric Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md mb-lg">
+<!-- Total Donors -->
+<div class="bg-surface-container-lowest p-gutter rounded-xl shadow-[0_15px_20px_-15px_rgba(0,108,73,0.06)] border border-outline-variant relative overflow-hidden group" style="transform: translateY(0px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+<div class="absolute left-0 top-0 h-full w-1 bg-secondary"></div>
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-secondary bg-secondary-container/20 p-2 rounded-lg">group</span>
+<span class="text-xs font-bold text-secondary-fixed-dim">+2 this month</span>
+</div>
+<h3 class="text-on-surface-variant font-label-md text-label-md mb-1">Total Donors</h3>
+<p class="font-display-lg text-headline-lg text-on-surface">7</p>
+</div>
+<!-- Donations Collected -->
+<div class="bg-surface-container-lowest p-gutter rounded-xl shadow-[0_15px_20px_-15px_rgba(0,108,73,0.06)] border border-outline-variant relative overflow-hidden group" style="transform: translateY(0px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+<div class="absolute left-0 top-0 h-full w-1 bg-secondary-fixed-dim"></div>
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-secondary bg-secondary-container/20 p-2 rounded-lg">volunteer_activism</span>
+<span class="text-xs font-bold text-secondary">Healthy</span>
+</div>
+<h3 class="text-on-surface-variant font-label-md text-label-md mb-1">Donations Collected</h3>
+<p class="font-display-lg text-headline-lg text-on-surface">₹4,100</p>
+</div>
+<!-- Total Expenditures -->
+<div class="bg-surface-container-lowest p-gutter rounded-xl shadow-[0_15px_20px_-15px_rgba(186,26,26,0.06)] border border-outline-variant relative overflow-hidden group" style="transform: translateY(0px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+<div class="absolute left-0 top-0 h-full w-1 bg-error"></div>
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-error bg-error-container/30 p-2 rounded-lg">payments</span>
+<span class="text-xs font-bold text-error">High</span>
+</div>
+<h3 class="text-on-surface-variant font-label-md text-label-md mb-1">Total Expenditures</h3>
+<p class="font-display-lg text-headline-lg text-on-surface">₹15,600</p>
+</div>
+<!-- Net Balance -->
+<div class="bg-error-container/20 p-gutter rounded-xl border border-error/20 relative overflow-hidden group" style="transform: translateY(0px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+<div class="absolute inset-0 bg-gradient-to-br from-error/5 to-transparent"></div>
+<div class="absolute left-0 top-0 h-full w-1 bg-error"></div>
+<div class="flex justify-between items-start mb-4 relative z-10">
+<span class="material-symbols-outlined text-error bg-white p-2 rounded-lg">account_balance_wallet</span>
+<span class="text-[10px] uppercase font-bold text-error tracking-widest">DEFICIT</span>
+</div>
+<h3 class="text-on-surface-variant font-label-md text-label-md mb-1 relative z-10">Net Balance</h3>
+<p class="font-display-lg text-headline-lg text-error relative z-10 font-bold">-₹11,500</p>
+</div>
+</div>
+<!-- Middle Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Quick Actions & Visuals (Left) -->
+<div class="lg:col-span-8">
+<h3 class="font-headline-md text-headline-md text-primary mb-sm">Quick Actions</h3>
+<!-- Responsive Grid for Quick Actions -->
+<div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
+<button class="flex flex-col items-center justify-center gap-3 p-4 md:p-6 bg-surface-container-lowest border border-outline-variant rounded-xl hover:border-secondary transition-all hover:shadow-md group">
+<span class="material-symbols-outlined text-secondary text-2xl md:text-3xl group-hover:scale-110 transition-transform">add_circle</span>
+<span class="font-label-md text-label-md text-on-surface text-center">Add Donation</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-3 p-4 md:p-6 bg-surface-container-lowest border border-outline-variant rounded-xl hover:border-secondary transition-all hover:shadow-md group">
+<span class="material-symbols-outlined text-secondary text-2xl md:text-3xl group-hover:scale-110 transition-transform">person_search</span>
+<span class="font-label-md text-label-md text-on-surface text-center">Mosque Users</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-3 p-4 md:p-6 bg-surface-container-lowest border border-outline-variant rounded-xl hover:border-secondary transition-all hover:shadow-md group">
+<span class="material-symbols-outlined text-error text-2xl md:text-3xl group-hover:scale-110 transition-transform">remove_circle</span>
+<span class="font-label-md text-label-md text-on-surface text-center">Add Expense</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-3 p-4 md:p-6 bg-surface-container-lowest border border-outline-variant rounded-xl hover:border-secondary transition-all hover:shadow-md group">
+<span class="material-symbols-outlined text-secondary text-2xl md:text-3xl group-hover:scale-110 transition-transform">manage_accounts</span>
+<span class="font-label-md text-label-md text-on-surface text-center">Imam Users</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-3 p-4 md:p-6 bg-surface-container-lowest border border-outline-variant rounded-xl hover:border-error transition-all hover:shadow-md group">
+<span class="material-symbols-outlined text-on-surface-variant text-2xl md:text-3xl group-hover:scale-110 transition-transform">delete_sweep</span>
+<span class="font-label-md text-label-md text-on-surface text-center">Modify / Delete</span>
+</button>
+</div>
+
+<div class="mt-lg">
+  <h3 class="font-headline-md text-headline-md text-primary mb-sm">System Notifications</h3>
+  <div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
+    <div class="divide-y divide-outline-variant">
+      <div class="px-6 py-4 flex items-center gap-4 hover:bg-surface-container-low transition-colors">
+        <div class="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary">
+          <span class="material-symbols-outlined">info</span>
+        </div>
+        <div class="flex-1">
+          <p class="font-body-md text-body-md font-semibold text-on-surface">Monthly Report Ready</p>
+          <p class="text-label-sm text-on-surface-variant">The financial summary for May 2026 is now available for review.</p>
+        </div>
+        <span class="text-xs text-outline">2h ago</span>
+      </div>
+      <div class="px-6 py-4 flex items-center gap-4 hover:bg-surface-container-low transition-colors">
+        <div class="w-10 h-10 rounded-full bg-error-container/20 flex items-center justify-center text-error">
+          <span class="material-symbols-outlined">warning</span>
+        </div>
+        <div class="flex-1">
+          <p class="font-body-md text-body-md font-semibold text-on-surface">Low Balance Alert</p>
+          <p class="text-label-sm text-on-surface-variant">Net balance has dropped below the recommended threshold.</p>
+        </div>
+        <span class="text-xs text-outline">5h ago</span>
+      </div>
+      <div class="px-6 py-4 flex items-center gap-4 hover:bg-surface-container-low transition-colors">
+        <div class="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary">
+          <span class="material-symbols-outlined">person_add</span>
+        </div>
+        <div class="flex-1">
+          <p class="font-body-md text-body-md font-semibold text-on-surface">New Donor Registered</p>
+          <p class="text-label-sm text-on-surface-variant">A new recurring donor 'Fatima Zahra' has been added to the system.</p>
+        </div>
+        <span class="text-xs text-outline">Yesterday</span>
+      </div>
+    </div>
+    <div class="px-6 py-3 bg-surface-container-low border-t border-outline-variant text-center">
+      <button class="text-label-md font-bold text-secondary uppercase tracking-wider hover:text-primary transition-colors">Clear All Notifications</button>
+    </div>
+  </div>
+</div></div>
+<!-- Activity Lists (Right) -->
+<div class="lg:col-span-4 space-y-gutter">
+<!-- Recent Donations -->
+<div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
+<div class="px-6 py-4 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+<h3 class="font-headline-md text-[18px] text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">trending_up</span>
+                        Recent Donations
+                    </h3>
+<a class="text-[12px] font-bold text-secondary uppercase tracking-wider" href="#">View All</a>
+</div>
+<div class="divide-y divide-outline-variant">
+<div class="px-6 py-4 flex justify-between items-center hover:bg-secondary/5 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary font-bold">Z</div>
+<div>
+<p class="font-body-md text-body-md font-semibold">Zoya</p>
+<p class="text-label-sm text-on-surface-variant">General Donation</p>
+</div>
+</div>
+<span class="font-headline-md text-[16px] text-secondary">₹500</span>
+</div>
+<div class="px-6 py-4 flex justify-between items-center hover:bg-secondary/5 transition-colors opacity-60">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant font-bold">A</div>
+<div>
+<p class="font-body-md text-body-md font-semibold">Ahmed Khan</p>
+<p class="text-label-sm text-on-surface-variant">Sadqah</p>
+</div>
+</div>
+<span class="font-headline-md text-[16px] text-secondary">₹1,200</span>
+</div>
+</div>
+</div>
+<!-- Recent Expenditures -->
+<div class="bg-surface-container-lowest rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
+<div class="px-6 py-4 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+<h3 class="font-headline-md text-[18px] text-error flex items-center gap-2">
+<span class="material-symbols-outlined text-error">trending_down</span>
+                        Expenditures
+                    </h3>
+</div>
+<div class="divide-y divide-outline-variant">
+<div class="px-6 py-4 flex justify-between items-center hover:bg-error/5 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-error-container/30 flex items-center justify-center text-error">
+<span class="material-symbols-outlined">construction</span>
+</div>
+<div>
+<p class="font-body-md text-body-md font-semibold text-on-surface">Construction</p>
+<p class="text-label-sm text-on-surface-variant">Maintenance Work</p>
+</div>
+</div>
+<span class="font-headline-md text-[16px] text-error">₹600</span>
+</div>
+<div class="px-6 py-4 flex justify-between items-center hover:bg-error/5 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-error-container/30 flex items-center justify-center text-error">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<div>
+<p class="font-body-md text-body-md font-semibold text-on-surface">Imam Salary</p>
+<p class="text-label-sm text-on-surface-variant">Monthly Payout</p>
+</div>
+</div>
+<span class="font-headline-md text-[16px] text-error">₹15,000</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+    }
+
+    // Simple hover effect for metric cards to update net balance color intensity
+    document.querySelectorAll('.group').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            if (window.innerWidth > 1024) {
+                card.style.transform = 'translateY(-4px)';
+                card.style.transition = 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            }
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0px)';
+        });
+    });
+</script>
+
+
+
+
+</body></html>

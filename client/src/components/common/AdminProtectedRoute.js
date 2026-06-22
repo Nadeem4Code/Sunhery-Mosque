@@ -5,6 +5,8 @@ import { auth } from "../../config/firebase";
 import axios from "axios";
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
+import Skeleton from "@mui/material/Skeleton";
+import Grid from "@mui/material/Grid";
 
 const AdminProtectedRoute = () => {
   const [user, loading] = useAuthState(auth);
@@ -111,15 +113,41 @@ const AdminProtectedRoute = () => {
 
   if (loading || checkingRole) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "90vh",
-        }}
-      >
-        <CircularProgress color="secondary" />
+      <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#f8f9ff" }}>
+        {/* Sidebar shell skeleton */}
+        <Box
+          sx={{
+            display: { xs: "none", lg: "block" },
+            width: 256,
+            bgcolor: "#ffffff",
+            borderRight: "1px solid #bfc8c8",
+            p: 3,
+            boxSizing: "border-box",
+          }}
+        >
+          <Skeleton variant="rectangular" width="80%" height={40} sx={{ mb: 5, borderRadius: "8px" }} />
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} variant="rectangular" height={45} sx={{ mb: 2, borderRadius: "8px" }} />
+          ))}
+        </Box>
+        {/* Main Content Area */}
+        <Box sx={{ flexGrow: 1, p: 4, boxSizing: "border-box" }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4, height: 64 }}>
+            <Skeleton variant="text" width="30%" height={40} />
+            <Skeleton variant="circular" width={40} height={40} />
+          </Box>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <Skeleton variant="rectangular" height={150} sx={{ borderRadius: "12px" }} />
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Skeleton variant="rectangular" height={250} sx={{ borderRadius: "12px" }} />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Skeleton variant="rectangular" height={250} sx={{ borderRadius: "12px" }} />
+              </Grid>
+            </Grid>
+          </Box>
+        </Box>
       </Box>
     );
   }

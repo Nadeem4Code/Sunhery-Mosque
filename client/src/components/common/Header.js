@@ -11,12 +11,13 @@ import MenuItem from "@mui/material/MenuItem";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, logout } from "../../config/firebase";
 import axios from "axios";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 
 import menu from "../../assets/icons/menu.svg";
 import logo from "../../assets/icons/logo.svg";
 
 const Header = () => {
+  const location = useLocation();
   const [user] = useAuthState(auth);
   const [mongoUser, setMongoUser] = React.useState(() => {
     const saved = localStorage.getItem("mongoUser");
@@ -95,6 +96,12 @@ const Header = () => {
     logout();
     navigate("/login");
   };
+
+  const isDashboard = location.pathname === "/dashboard";
+
+  if (isDashboard) {
+    return <Outlet />;
+  }
 
   return (
     <>

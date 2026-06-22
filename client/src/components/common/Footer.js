@@ -1,36 +1,46 @@
-import React from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
-import BottomNavigation from "@mui/material/BottomNavigation";
-import BottomNavigationAction from "@mui/material/BottomNavigationAction";
-import Paper from "@mui/material/Paper";
-import { Stack } from "@mui/material";
+import ButtonBase from "@mui/material/ButtonBase";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "../../config/firebase";
 import axios from "axios";
 
-// Icons
-import home from "../../assets/icons/home.svg";
-import homeColor from "../../assets/icons/homeColor.svg";
-import userList from "../../assets/icons/userList.svg";
-import userListColor from "../../assets/icons/userListColor.svg";
-import login from "../../assets/icons/login.svg";
-import loginColor from "../../assets/icons/loginColor.svg";
-import donation from "../../assets/icons/donation.svg";
-import donationColor from "../../assets/icons/donationColor.svg";
+// Icons from @mui/icons-material
+import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
+import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
+import ScheduleRoundedIcon from "@mui/icons-material/ScheduleRounded";
+import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
+
+const colors = {
+  primary: "#003535",
+  onPrimary: "#ffffff",
+  primaryContainer: "#0d4d4d",
+  background: "#f8f9ff",
+  onSurfaceVariant: "#404848",
+  outlineVariant: "#bfc8c8",
+};
+
+const typography = {
+  labelSm: {
+    fontFamily: "Inter, sans-serif",
+    fontSize: "12px",
+    fontWeight: 600,
+    lineHeight: "16px"
+  }
+};
 
 const Footer = () => {
+  const navigate = useNavigate();
   const location = useLocation();
-  const [value, setValue] = React.useState(location.pathname);
   const [user] = useAuthState(auth);
-  const [mongoUser, setMongoUser] = React.useState(null);
+  const [mongoUser, setMongoUser] = useState(null);
 
-  React.useEffect(() => {
-    setValue(location.pathname);
-  }, [location]);
-
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) {
       axios
         .get(`http://localhost:3001/books/uid/${user.uid}`)
@@ -46,152 +56,135 @@ const Footer = () => {
   }, [user]);
 
   let targetLink = "/login";
-  let isTargetActive = value === "/login";
   if (user && mongoUser) {
     if (mongoUser.role === "admin") {
       targetLink = "/dashboard";
-      isTargetActive = value === "/dashboard";
     } else {
       targetLink = `/user/${mongoUser.id}`;
-      isTargetActive = value.startsWith("/user/");
     }
   }
 
+  // Determine active states for the tabs
+  const isHomeActive = location.pathname === "/";
+  const isFinanceActive = location.pathname === "/showUserPublic";
+  const isProfileActive = location.pathname === targetLink || location.pathname.startsWith("/user/");
+
   return (
-    <Box sx={{ pb: 7 }}>
+    <Box sx={{ pb: { xs: 8, lg: 0 } }}>
       <CssBaseline />
 
-      <Paper
-        sx={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 10 }}
-        elevation={3}
+      {/* Responsive Bottom Navigation Bar */}
+      <Box
+        component="nav"
+        sx={{
+          display: { xs: "flex", lg: "none" },
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 64,
+          bgcolor: "#ffffff",
+          borderTop: `1px solid ${colors.outlineVariant}`,
+          alignItems: "center",
+          justifyContent: "space-around",
+          px: 2,
+          zIndex: 1100
+        }}
       >
-        <BottomNavigation
-          showLabels
-          value={value}
-          onChange={(event, newValue) => {
-            setValue(newValue);
+        {/* Home Tab */}
+        <ButtonBase
+          onClick={() => navigate("/")}
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            color: isHomeActive ? colors.primary : colors.onSurfaceVariant,
+            width: 60,
+            py: 0.5
           }}
         >
-          <style>{`
-            @keyframes nav-pop {
-              0% { transform: scale(1); }
-              50% { transform: scale(1.2); }
-              100% { transform: scale(1); }
-            }
-            .nav-active-pop {
-              animation: nav-pop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            }
-            /* Remove blue/grey tap highlights and square outlines on click */
-            .MuiBottomNavigation-root a,
-            .MuiBottomNavigation-root button,
-            .MuiBottomNavigation-root .MuiButtonBase-root {
-              outline: none !important;
-              box-shadow: none !important;
-              -webkit-tap-highlight-color: transparent !important;
-            }
-          `}</style>
-          <Stack direction="row" spacing={3}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <NavLink to="/">
-                <BottomNavigationAction
-                  icon={
-                    <img
-                      src={value === "/" ? homeColor : home}
-                      alt="Home Icon"
-                      className={value === "/" ? "nav-active-pop" : ""}
-                      style={{
-                        width: "45px",
-                        height: "45px",
-                        marginTop: "10px",
-                      }}
-                    />
-                  }
-                />
-              </NavLink>
-            </div>
-            {/*Donation*/}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <NavLink to="/donation">
-                <BottomNavigationAction
-                  label="Favorites"
-                  icon={
-                    <img
-                      src={value === "/donation" ? donationColor : donation}
-                      alt="User List Icon"
-                      className={value === "/donation" ? "nav-active-pop" : ""}
-                      style={{
-                        marginTop: "15px",
-                        width: "50px",
-                        height: "60px",
-                      }}
-                    />
-                  }
-                />
-              </NavLink>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <NavLink to="/showUserPublic">
-                <BottomNavigationAction
-                  label="Favorites"
-                  icon={
-                    <img
-                      src={value === "/showUserPublic" ? userListColor : userList}
-                      alt="User List Icon"
-                      className={value === "/showUserPublic" ? "nav-active-pop" : ""}
-                      style={{
-                        width: "45px",
-                        height: "35px",
-                      }}
-                    />
-                  }
-                />
-              </NavLink>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <NavLink to={targetLink}>
-                <BottomNavigationAction
-                  label={user && mongoUser ? (mongoUser.role === "admin" ? "Admin Dashboard" : "User Dashboard") : "Sign In"}
-                  icon={
-                    <img
-                      src={isTargetActive ? loginColor : login}
-                      alt="Login Icon"
-                      className={isTargetActive ? "nav-active-pop" : ""}
-                      style={{
-                        width: "25px",
-                        height: "25px",
-                      }}
-                    />
-                  }
-                />
-              </NavLink>
-            </div>
-          </Stack>
-        </BottomNavigation>
-      </Paper>
+          <DashboardRoundedIcon sx={{ fontSize: "24px" }} />
+          <Typography sx={{ ...typography.labelSm, fontSize: "8px", fontWeight: "700", textTransform: "uppercase", mt: 0.5 }}>
+            Home
+          </Typography>
+        </ButtonBase>
+
+        {/* Finance/Donors Tab */}
+        <ButtonBase
+          onClick={() => navigate("/showUserPublic")}
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            color: isFinanceActive ? colors.primary : colors.onSurfaceVariant,
+            width: 60,
+            py: 0.5
+          }}
+        >
+          <PaymentsRoundedIcon sx={{ fontSize: "24px" }} />
+          <Typography sx={{ ...typography.labelSm, fontSize: "8px", fontWeight: "700", textTransform: "uppercase", mt: 0.5 }}>
+            Finance
+          </Typography>
+        </ButtonBase>
+
+        {/* Floating Center Action Button (quick shortcut to donate) */}
+        <Box sx={{ position: "relative", top: -16, p: "4px", bgcolor: colors.background, borderRadius: "50%" }}>
+          <IconButton 
+            onClick={() => navigate("/donation")}
+            sx={{ 
+              width: 48, 
+              height: 48, 
+              bgcolor: colors.primary, 
+              color: "white", 
+              boxShadow: "0 10px 15px -3px rgba(0, 53, 53, 0.3)",
+              border: `4px solid ${colors.background}`,
+              "&:hover": { bgcolor: colors.primaryContainer }
+            }}
+          >
+            <AddRoundedIcon sx={{ fontSize: "24px" }} />
+          </IconButton>
+        </Box>
+
+        {/* Prayers Tab */}
+        <ButtonBase
+          onClick={() => navigate("/")}
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            color: colors.onSurfaceVariant,
+            width: 60,
+            py: 0.5
+          }}
+        >
+          <ScheduleRoundedIcon sx={{ fontSize: "24px" }} />
+          <Typography sx={{ ...typography.labelSm, fontSize: "8px", fontWeight: "700", textTransform: "uppercase", mt: 0.5 }}>
+            Prayers
+          </Typography>
+        </ButtonBase>
+
+        {/* Profile Tab */}
+        <ButtonBase
+          onClick={() => navigate(targetLink)}
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            color: isProfileActive ? colors.primary : colors.onSurfaceVariant,
+            width: 60,
+            py: 0.5
+          }}
+        >
+          <PersonRoundedIcon sx={{ fontSize: "24px" }} />
+          <Typography sx={{ ...typography.labelSm, fontSize: "8px", fontWeight: "700", textTransform: "uppercase", mt: 0.5 }}>
+            Profile
+          </Typography>
+        </ButtonBase>
+      </Box>
     </Box>
   );
 };

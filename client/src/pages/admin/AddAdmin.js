@@ -43,22 +43,31 @@ const getTempAuth = () => {
   return getAuth(tempApp);
 };
 
-const AddAdmin = () => {
-  const [open, setOpen] = useState(false);
+const AddAdmin = ({ open: propOpen, onClose: propOnClose }) => {
+  const [localOpen, setOpen] = useState(false);
   const [adminName, setAdminName] = useState("");
   const [adminPhone, setAdminPhone] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [phoneError, setPhoneError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const isControlled = propOpen !== undefined;
+  const open = isControlled ? propOpen : localOpen;
+
   const handleClickOpen = () => {
-    setOpen(true);
+    if (!isControlled) {
+      setOpen(true);
+    }
   };
 
   const handleClose = () => {
     if (submitting) return;
-    setOpen(false);
-    resetForm();
+    if (isControlled) {
+      if (propOnClose) propOnClose();
+    } else {
+      setOpen(false);
+      resetForm();
+    }
   };
 
   const resetForm = () => {
@@ -116,7 +125,11 @@ const AddAdmin = () => {
 
       toast.success("Administrator registered successfully!");
       setTimeout(() => {
-        setOpen(false);
+        if (isControlled) {
+          if (propOnClose) propOnClose();
+        } else {
+          setOpen(false);
+        }
         resetForm();
       }, 1500);
 
@@ -136,21 +149,23 @@ const AddAdmin = () => {
 
   return (
     <div>
-      <Avatar
-        onClick={handleClickOpen}
-        style={{
-          width: "48px",
-          height: "48px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          background: "linear-gradient(135deg, #FF9900 0%, #FF5E00 100%)",
-          borderRadius: "5px",
-          cursor: "pointer"
-        }}
-      >
-        <SupervisorAccountRoundedIcon style={{ color: "white", fontSize: "24px" }} />
-      </Avatar>
+      {!isControlled && (
+        <Avatar
+          onClick={handleClickOpen}
+          style={{
+            width: "48px",
+            height: "48px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            background: "linear-gradient(135deg, #FF9900 0%, #FF5E00 100%)",
+            borderRadius: "5px",
+            cursor: "pointer"
+          }}
+        >
+          <SupervisorAccountRoundedIcon style={{ color: "white", fontSize: "24px" }} />
+        </Avatar>
+      )}
 
       <Dialog
         open={open}

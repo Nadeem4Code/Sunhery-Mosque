@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { 
   Grid, 
   Card, 
@@ -7,36 +7,148 @@ import {
   Avatar, 
   CircularProgress, 
   Box, 
-  Container,
-  Paper,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  IconButton
+  Select, 
+  MenuItem, 
+  FormControl, 
+  IconButton,
+  Button,
+  ButtonBase,
+  Menu,
+  Snackbar,
+  Alert,
+  Skeleton
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "../../config/firebase";
 import axios from "axios";
 
-// Icons
-import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
-import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
-import SupervisorAccountRoundedIcon from "@mui/icons-material/SupervisorAccountRounded";
-import CurrencyRupeeRoundedIcon from "@mui/icons-material/CurrencyRupeeRounded";
+// Icons from @mui/icons-material
+import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
 import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
-import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
-import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
-import PaymentRoundedIcon from "@mui/icons-material/PaymentRounded";
-import MoneyOffCsredRoundedIcon from "@mui/icons-material/MoneyOffCsredRounded";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
+import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import VolunteerActivismRoundedIcon from "@mui/icons-material/VolunteerActivismRounded";
+import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
+import AddCircleRoundedIcon from "@mui/icons-material/AddCircleRounded";
+import PersonSearchRoundedIcon from "@mui/icons-material/PersonSearchRounded";
+import RemoveCircleRoundedIcon from "@mui/icons-material/RemoveCircleRounded";
+import ManageAccountsRoundedIcon from "@mui/icons-material/ManageAccountsRounded";
+import DeleteSweepRoundedIcon from "@mui/icons-material/DeleteSweepRounded";
+import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
+import TrendingDownRoundedIcon from "@mui/icons-material/TrendingDownRounded";
+import ConstructionRoundedIcon from "@mui/icons-material/ConstructionRounded";
 
-// Components
-import AddUser from "./AddUser";
-import AddAdmin from "./AddAdmin";
-import AddExpenditure from "./AddExpenditure";
+// Dialog Components
 import EditExpenditure from "./EditExpenditure";
+
+// Custom Mockup Theme Colors matching Dahsboard.html
+const colors = {
+  primary: "#003535",
+  onPrimary: "#ffffff",
+  primaryContainer: "#0d4d4d",
+  onPrimaryContainer: "#85bdbc",
+  primaryFixed: "#b4edec",
+  primaryFixedDim: "#98d1d0",
+  onPrimaryFixed: "#002020",
+  onPrimaryFixedVariant: "#104f4f",
+  
+  secondary: "#006c49",
+  onSecondary: "#ffffff",
+  secondaryContainer: "#6cf8bb",
+  onSecondaryContainer: "#00714d",
+  secondaryFixed: "#6ffbbe",
+  secondaryFixedDim: "#4edea3",
+  onSecondaryFixed: "#002113",
+  onSecondaryFixedVariant: "#005236",
+  
+  tertiary: "#26312c",
+  onTertiary: "#ffffff",
+  tertiaryContainer: "#3c4842",
+  onTertiaryContainer: "#a9b6ae",
+  tertiaryFixed: "#d9e6dd",
+  tertiaryFixedDim: "#bdcac1",
+  onTertiaryFixed: "#131e19",
+  onTertiaryFixedVariant: "#3e4943",
+  
+  error: "#ba1a1a",
+  onError: "#ffffff",
+  errorContainer: "#ffdad6",
+  onErrorContainer: "#93000a",
+  
+  background: "#f8f9ff",
+  onBackground: "#0b1c30",
+  
+  surface: "#f8f9ff",
+  onSurface: "#0b1c30",
+  surfaceBright: "#f8f9ff",
+  surfaceDim: "#cbdbf5",
+  surfaceVariant: "#d3e4fe",
+  onSurfaceVariant: "#404848",
+  
+  surfaceContainerLowest: "#ffffff",
+  surfaceContainerLow: "#eff4ff",
+  surfaceContainer: "#e5eeff",
+  surfaceContainerHigh: "#dce9ff",
+  surfaceContainerHighest: "#d3e4fe",
+  
+  outline: "#707978",
+  outlineVariant: "#bfc8c8",
+  inverseSurface: "#213145",
+  inverseOnSurface: "#eaf1ff",
+  inversePrimary: "#98d1d0",
+};
+
+// Typography Tokens matching Dahsboard.html Tailwind config
+const typography = {
+  displayLg: {
+    fontFamily: "Hanken Grotesk, sans-serif",
+    fontSize: "48px",
+    fontWeight: 700,
+    lineHeight: "56px",
+    letterSpacing: "-0.02em"
+  },
+  headlineLg: {
+    fontFamily: "Hanken Grotesk, sans-serif",
+    fontSize: "32px",
+    fontWeight: 600,
+    lineHeight: "40px"
+  },
+  headlineMd: {
+    fontFamily: "Hanken Grotesk, sans-serif",
+    fontSize: "24px",
+    fontWeight: 600,
+    lineHeight: "32px"
+  },
+  bodyLg: {
+    fontFamily: "Inter, sans-serif",
+    fontSize: "18px",
+    fontWeight: 400,
+    lineHeight: "28px"
+  },
+  bodyMd: {
+    fontFamily: "Inter, sans-serif",
+    fontSize: "16px",
+    fontWeight: 400,
+    lineHeight: "24px"
+  },
+  labelMd: {
+    fontFamily: "Inter, sans-serif",
+    fontSize: "14px",
+    fontWeight: 500,
+    lineHeight: "20px",
+    letterSpacing: "0.01em"
+  },
+  labelSm: {
+    fontFamily: "Inter, sans-serif",
+    fontSize: "12px",
+    fontWeight: 600,
+    lineHeight: "16px"
+  }
+};
 
 const Dashboard = () => {
   const [user, loading] = useAuthState(auth);
@@ -45,15 +157,32 @@ const Dashboard = () => {
   const [expenditures, setExpenditures] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [filterYear, setFilterYear] = useState("2026"); // Defaults to 2026
+  
+  // Dialog Open States (Controlled)
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedExpenditure, setSelectedExpenditure] = useState(null);
+
+  // Layout UI States
+  const [anchorElNewEntry, setAnchorElNewEntry] = useState(null);
+
+  // Toast / Feedback States
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("info");
+
+
+
   const navigate = useNavigate();
 
-  const fetchData = () => {
+  const showToast = (message, severity = "info") => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+
+  const fetchData = useCallback(() => {
     setLoadingData(true);
-    // Fetch users
     const usersReq = axios.get("http://localhost:3001/books");
-    // Fetch expenditures
     const expReq = axios.get("http://localhost:3001/expenditures");
 
     Promise.all([usersReq, expReq])
@@ -64,9 +193,35 @@ const Dashboard = () => {
       })
       .catch((err) => {
         console.error("Failed to load dashboard data:", err);
+        showToast("Failed to reload dashboard statistics.", "error");
         setLoadingData(false);
       });
-  };
+  }, []);
+
+  // Load custom fonts on mount
+  useEffect(() => {
+    const fontLink = document.createElement("link");
+    fontLink.href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Hanken+Grotesk:wght@600;700;800&display=swap";
+    fontLink.rel = "stylesheet";
+    document.head.appendChild(fontLink);
+    
+    return () => {
+      try {
+        document.head.removeChild(fontLink);
+      } catch (e) {}
+    };
+  }, []);
+
+  // Listen for global data changed events to trigger feed reloads
+  useEffect(() => {
+    const handleDataChanged = () => {
+      fetchData();
+    };
+    window.addEventListener("admin-data-changed", handleDataChanged);
+    return () => {
+      window.removeEventListener("admin-data-changed", handleDataChanged);
+    };
+  }, [fetchData]);
 
   const handleDeleteExpenditure = async (id) => {
     if (!window.confirm("Are you sure you want to delete this expenditure record?")) {
@@ -74,10 +229,11 @@ const Dashboard = () => {
     }
     try {
       await axios.delete(`http://localhost:3001/expenditures/${id}`);
-      fetchData(); // Refresh metrics and lists
+      showToast("Expenditure deleted successfully.", "success");
+      fetchData();
     } catch (err) {
       console.error("Failed to delete expenditure:", err);
-      alert("Failed to delete expenditure record. Please try again.");
+      showToast("Failed to delete expenditure. Please try again.", "error");
     }
   };
 
@@ -93,11 +249,27 @@ const Dashboard = () => {
       return;
     }
 
+    // Performance optimization: check local storage cache for quick role validation
+    const saved = localStorage.getItem("mongoUser");
+    if (saved) {
+      try {
+        const u = JSON.parse(saved);
+        if (u.uid === user.uid && u.role === "admin") {
+          setCheckingRole(false);
+          fetchData();
+          return;
+        }
+      } catch (e) {
+        // Fall back to API validation
+      }
+    }
+
     axios.get(`http://localhost:3001/books/uid/${user.uid}`)
       .then((res) => {
         if (res.data.role !== "admin") {
           navigate(`/user/${res.data.id}`);
         } else {
+          localStorage.setItem("mongoUser", JSON.stringify(res.data));
           setCheckingRole(false);
           fetchData();
         }
@@ -106,11 +278,13 @@ const Dashboard = () => {
         console.error("Dashboard auth check failed:", err);
         navigate("/login");
       });
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, fetchData]);
 
   // Extract all unique years present in donations and expenditures
-  const availableYears = React.useMemo(() => {
+  const availableYears = useMemo(() => {
     const years = new Set();
+    years.add("2026");
+    years.add("2025");
     users.forEach((u) => {
       if (u.mosque && Array.isArray(u.mosque)) {
         u.mosque.forEach(y => { if (y.year) years.add(y.year); });
@@ -123,54 +297,56 @@ const Dashboard = () => {
       if (exp.year) years.add(exp.year);
     });
     
-    // Always include at least 2025 and 2026 as fallbacks
-    years.add("2025");
-    years.add("2026");
-    
     return Array.from(years).sort((a, b) => b - a);
   }, [users, expenditures]);
 
   // Calculate dynamic stats filtered by year
   const totalDonors = users.length;
   
-  let donationsCollected = 0;
-  users.forEach((u) => {
-    if (u.mosque && Array.isArray(u.mosque)) {
-      u.mosque.forEach((y) => {
-        if (!filterYear || y.year === filterYear) {
-          if (y.months && Array.isArray(y.months)) {
-            y.months.forEach((m) => {
-              donationsCollected += Number(m.amount) || 0;
-            });
+  const donationsCollected = useMemo(() => {
+    let sum = 0;
+    users.forEach((u) => {
+      if (u.mosque && Array.isArray(u.mosque)) {
+        u.mosque.forEach((y) => {
+          if (!filterYear || y.year === filterYear) {
+            if (y.months && Array.isArray(y.months)) {
+              y.months.forEach((m) => {
+                sum += Number(m.amount) || 0;
+              });
+            }
           }
-        }
-      });
-    }
+        });
+      }
 
-    if (u.imam && Array.isArray(u.imam)) {
-      u.imam.forEach((y) => {
-        if (!filterYear || y.year === filterYear) {
-          if (y.months && Array.isArray(y.months)) {
-            y.months.forEach((m) => {
-              donationsCollected += Number(m.amount) || 0;
-            });
+      if (u.imam && Array.isArray(u.imam)) {
+        u.imam.forEach((y) => {
+          if (!filterYear || y.year === filterYear) {
+            if (y.months && Array.isArray(y.months)) {
+              y.months.forEach((m) => {
+                sum += Number(m.amount) || 0;
+              });
+            }
           }
-        }
-      });
-    }
-  });
+        });
+      }
+    });
+    return sum;
+  }, [users, filterYear]);
 
-  let totalExpenditures = 0;
-  expenditures.forEach((exp) => {
-    if (!filterYear || exp.year === filterYear) {
-      totalExpenditures += Number(exp.amount) || 0;
-    }
-  });
+  const totalExpenditures = useMemo(() => {
+    let sum = 0;
+    expenditures.forEach((exp) => {
+      if (!filterYear || exp.year === filterYear) {
+        sum += Number(exp.amount) || 0;
+      }
+    });
+    return sum;
+  }, [expenditures, filterYear]);
 
   const netBalance = donationsCollected - totalExpenditures;
 
   // Extract donations feed, filtered by year, sorted by date descending
-  const recentDonations = React.useMemo(() => {
+  const recentDonations = useMemo(() => {
     const all = [];
     users.forEach((u) => {
       if (u.mosque && Array.isArray(u.mosque)) {
@@ -215,620 +391,705 @@ const Dashboard = () => {
   }, [users, filterYear]);
 
   // Extract expenditures feed, filtered by year, sorted by date descending
-  const recentExpenditures = React.useMemo(() => {
+  const recentExpenditures = useMemo(() => {
     const filtered = expenditures.filter(exp => !filterYear || exp.year === filterYear);
     return filtered.slice(0, 5);
   }, [expenditures, filterYear]);
 
-  if (loading || checkingRole || loadingData) {
+
+
+  const handleNewEntryMenuOpen = (event) => {
+    setAnchorElNewEntry(event.currentTarget);
+  };
+
+  const handleNewEntryMenuClose = () => {
+    setAnchorElNewEntry(null);
+  };
+
+
+
+
+
+
+
+
+
+  if (loading || checkingRole) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "90vh",
-        }}
-      >
-        <CircularProgress color="secondary" />
+      <Box sx={{ p: 4, bgcolor: colors.background, minHeight: "100vh" }}>
+        {/* Welcome Section Skeleton */}
+        <Box sx={{ mb: 5 }}>
+          <Skeleton variant="text" width="20%" height={20} sx={{ mb: 1 }} />
+          <Skeleton variant="text" width="40%" height={48} />
+        </Box>
+
+        {/* Stats Grid Skeleton */}
+        <Grid container spacing={3} sx={{ mb: 5 }}>
+          {[1, 2, 3, 4].map((item) => (
+            <Grid item xs={12} sm={6} md={3} key={item}>
+              <Card sx={{ bgcolor: "#ffffff", borderRadius: "12px", border: `1px solid ${colors.outlineVariant}`, p: 3 }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+                  <Skeleton variant="circular" width={36} height={36} />
+                  <Skeleton variant="text" width="30%" height={20} />
+                </Box>
+                <Skeleton variant="text" width="50%" height={20} sx={{ mb: 1 }} />
+                <Skeleton variant="text" width="80%" height={36} />
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+
+        {/* Content Columns Skeleton */}
+        <Grid container spacing={4}>
+          <Grid item xs={12} lg={8}>
+            <Skeleton variant="text" width="25%" height={32} sx={{ mb: 2 }} />
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "repeat(2, 1fr)", sm: "repeat(3, 1fr)", xl: "repeat(5, 1fr)" }, gap: "16px" }}>
+              {[1, 2, 3, 4, 5].map((item) => (
+                <Skeleton key={item} variant="rectangular" height={120} sx={{ borderRadius: "12px" }} />
+              ))}
+            </Box>
+          </Grid>
+          <Grid item xs={12} lg={4}>
+            <Card sx={{ bgcolor: "#ffffff", borderRadius: "16px", p: 3, border: `1px solid ${colors.outlineVariant}` }}>
+              <Skeleton variant="text" width="60%" height={28} sx={{ mb: 2 }} />
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {[1, 2, 3, 4, 5].map((item) => (
+                  <Box key={item} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Skeleton variant="text" width="70%" height={20} />
+                      <Skeleton variant="text" width="40%" height={16} />
+                    </Box>
+                    <Skeleton variant="text" width="60px" height={20} />
+                  </Box>
+                ))}
+              </Box>
+            </Card>
+          </Grid>
+        </Grid>
       </Box>
     );
   }
 
   return (
-    <Container maxWidth="xl" sx={{ mt: "100px", mb: 6 }}>
-      {/* Welcome & Title Header */}
-      <Box sx={{ mb: 4, display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 2 }}>
-        <Box>
-          <Typography 
-            variant="h4" 
-            sx={{ 
-              fontFamily: "Poppins", 
-              fontWeight: "800", 
-              color: "#240F4F",
-              fontSize: { xs: "24px", md: "32px" }
-            }}
-          >
-            Admin Dashboard
-          </Typography>
-          <Typography 
-            variant="subtitle1" 
-            sx={{ 
-              fontFamily: "Poppins", 
-              color: "#8789A3",
-              fontWeight: "500",
-              mt: 0.5
-            }}
-          >
-            Welcome back, <span style={{ fontWeight: "700", color: "#672CBC" }}>Mohd Nadeem</span>
-          </Typography>
-        </Box>
-        
-        {/* Year Filter & Admin Badge container */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          {/* Year Filter Select Dropdown */}
-          <FormControl size="small" sx={{ minWidth: 140 }}>
-            <InputLabel style={{ fontFamily: "Poppins" }}>Year Filter</InputLabel>
-            <Select
-              value={filterYear}
-              label="Year Filter"
-              onChange={(e) => setFilterYear(e.target.value)}
-              style={{ fontFamily: "Poppins", borderRadius: "5px" }}
-            >
-              <MenuItem value="" style={{ fontFamily: "Poppins" }}>All Years</MenuItem>
-              {availableYears.map(year => (
-                <MenuItem key={year} value={year} style={{ fontFamily: "Poppins" }}>
-                  {year} Year
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <Box 
-            sx={{ 
-              backgroundColor: "rgba(103, 44, 188, 0.1)", 
-              color: "#672CBC", 
-              px: 2, 
-              py: 1, 
-              borderRadius: "5px",
-              fontFamily: "Poppins",
-              fontWeight: "700",
-              fontSize: "13px",
-              letterSpacing: "0.5px",
-              display: "flex",
-              alignItems: "center",
-              gap: 1
-            }}
-          >
-            <CheckCircleRoundedIcon fontSize="small" /> System Administrator
-          </Box>
-        </Box>
-      </Box>
-
-      {/* Dynamic Summary Cards Grid */}
-      <Grid container spacing={3} sx={{ mb: 5 }}>
-        {/* Total Donors */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card 
-            sx={{ 
-              background: "linear-gradient(135deg, #672CBC 0%, #9055FF 100%)", 
-              borderRadius: "5px",
-              color: "white",
-              boxShadow: "0 4px 12px rgba(103, 44, 188, 0.12)"
-            }}
-          >
-            <CardContent sx={{ display: "flex", alignItems: "center", p: 3 }}>
-              <Avatar sx={{ width: 52, height: 52, borderRadius: "5px", background: "rgba(255,255,255,0.2)", mr: 2 }}>
-                <GroupRoundedIcon sx={{ color: "white", fontSize: "28px" }} />
-              </Avatar>
-              <Box>
-                <Typography sx={{ fontFamily: "Poppins", fontSize: "13px", opacity: 0.85, fontWeight: "500" }}>
-                  Total Donors
-                </Typography>
-                <Typography sx={{ fontFamily: "Poppins", fontSize: "26px", fontWeight: "800" }}>
-                  {totalDonors}
+    <>
+          {/* Hero Welcome Row */}
+          <Box sx={{ mb: 5, display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: 2.5 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: colors.secondary }} />
+                <Typography sx={{ ...typography.labelMd, color: colors.onSurfaceVariant }}>
+                  Welcome back, Mohd Nadeem
                 </Typography>
               </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Donations Collected */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card 
-            sx={{ 
-              background: "linear-gradient(135deg, #00B09B 0%, #96C93D 100%)", 
-              borderRadius: "5px",
-              color: "white",
-              boxShadow: "0 4px 12px rgba(0, 176, 155, 0.12)"
-            }}
-          >
-            <CardContent sx={{ display: "flex", alignItems: "center", p: 3 }}>
-              <Avatar sx={{ width: 52, height: 52, borderRadius: "5px", background: "rgba(255,255,255,0.2)", mr: 2 }}>
-                <PaymentRoundedIcon sx={{ color: "white", fontSize: "28px" }} />
-              </Avatar>
-              <Box>
-                <Typography sx={{ fontFamily: "Poppins", fontSize: "13px", opacity: 0.85, fontWeight: "500" }}>
-                  Donations Collected {filterYear && `(${filterYear})`}
-                </Typography>
-                <Typography sx={{ fontFamily: "Poppins", fontSize: "26px", fontWeight: "800", display: "flex", alignItems: "center" }}>
-                  ₹{donationsCollected.toLocaleString()}
-                </Typography>
+              <Typography sx={{ ...typography.displayLg, color: colors.primary, fontSize: { xs: "32px", md: "48px" } }}>
+                Admin Dashboard
+              </Typography>
+            </Box>
+            
+            {/* Year Filter Select Dropdown & New Entry trigger */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, width: { xs: "100%", md: "auto" } }}>
+              <Box sx={{ display: "flex", flex: 1, alignItems: "center", bgcolor: colors.surfaceContainerLowest, border: `1px solid ${colors.outlineVariant}`, px: 2, py: 1, borderRadius: "8px", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
+                <CalendarTodayRoundedIcon sx={{ fontSize: "18px", color: colors.outline, mr: 1 }} />
+                <FormControl variant="standard" sx={{ minWidth: 60 }}>
+                  <Select
+                    value={filterYear}
+                    onChange={(e) => setFilterYear(e.target.value)}
+                    disableUnderline
+                    IconComponent={ExpandMoreRoundedIcon}
+                    sx={{ fontFamily: "Inter", fontSize: "14px", fontWeight: "700", color: colors.onSurface }}
+                  >
+                    <MenuItem value="" sx={{ fontFamily: "Inter" }}>All</MenuItem>
+                    {availableYears.map(year => (
+                      <MenuItem key={year} value={year} sx={{ fontFamily: "Inter" }}>
+                        {year}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Total Expenditures */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card 
-            sx={{ 
-              background: "linear-gradient(135deg, #ff5252 0%, #ff1744 100%)", 
-              borderRadius: "5px",
-              color: "white",
-              boxShadow: "0 4px 12px rgba(255, 23, 68, 0.12)"
-            }}
-          >
-            <CardContent sx={{ display: "flex", alignItems: "center", p: 3 }}>
-              <Avatar sx={{ width: 52, height: 52, borderRadius: "5px", background: "rgba(255,255,255,0.2)", mr: 2 }}>
-                <MoneyOffCsredRoundedIcon sx={{ color: "white", fontSize: "28px" }} />
-              </Avatar>
-              <Box>
-                <Typography sx={{ fontFamily: "Poppins", fontSize: "13px", opacity: 0.85, fontWeight: "500" }}>
-                  Total Expenditures {filterYear && `(${filterYear})`}
-                </Typography>
-                <Typography sx={{ fontFamily: "Poppins", fontSize: "26px", fontWeight: "800", display: "flex", alignItems: "center" }}>
-                  ₹{totalExpenditures.toLocaleString()}
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Net Balance */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card 
-            sx={{ 
-              background: netBalance >= 0 
-                ? "linear-gradient(135deg, #240F4F 0%, #4A154B 100%)" 
-                : "linear-gradient(135deg, #37000A 0%, #5E0011 100%)", 
-              borderRadius: "5px",
-              color: "white",
-              boxShadow: "0 4px 12px rgba(36, 15, 79, 0.15)"
-            }}
-          >
-            <CardContent sx={{ display: "flex", alignItems: "center", p: 3 }}>
-              <Avatar sx={{ width: 52, height: 52, borderRadius: "5px", background: "rgba(255,255,255,0.2)", mr: 2 }}>
-                <CurrencyRupeeRoundedIcon sx={{ color: "white", fontSize: "28px" }} />
-              </Avatar>
-              <Box>
-                <Typography sx={{ fontFamily: "Poppins", fontSize: "13px", opacity: 0.85, fontWeight: "500" }}>
-                  Net Balance {filterYear && `(${filterYear})`}
-                </Typography>
-                <Typography sx={{ fontFamily: "Poppins", fontSize: "26px", fontWeight: "800", display: "flex", alignItems: "center" }}>
-                  ₹{netBalance.toLocaleString()}
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      {/* Main Content Sections */}
-      <Grid container spacing={4}>
-        {/* Quick Actions Panel */}
-        <Grid item xs={12} md={7}>
-          <Typography variant="h6" sx={{ fontFamily: "Poppins", fontWeight: "700", color: "#240F4F", mb: 2.5 }}>
-            Administrative Quick Actions
-          </Typography>
-          <Grid container spacing={3}>
-            {/* Register Donor Modal */}
-            <Grid item xs={12} sm={6}>
-              <Card 
-                sx={{ 
-                  borderRadius: "5px",
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.03)",
-                  border: "1px solid rgba(103, 44, 188, 0.1)",
-                  transition: "transform 0.2s, box-shadow 0.2s",
-                  "&:hover": {
-                    transform: "translateY(-4px)",
-                    boxShadow: "0 6px 20px rgba(103, 44, 188, 0.1)",
-                  },
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  p: 3,
-                  textAlign: "center"
+              
+              {/* New Entry Action Button */}
+              <Button
+                variant="contained"
+                onClick={handleNewEntryMenuOpen}
+                startIcon={<AddRoundedIcon />}
+                sx={{
+                  bgcolor: colors.primary,
+                  color: colors.onPrimary,
+                  textTransform: "none",
+                  fontFamily: "Inter",
+                  fontWeight: "700",
+                  fontSize: "14px",
+                  px: 3,
+                  py: 1.25,
+                  borderRadius: "8px",
+                  boxShadow: "none",
+                  "&:hover": { bgcolor: colors.primaryContainer, boxShadow: "none" }
                 }}
               >
-                <AddUser />
-                <Typography sx={{ fontFamily: "Poppins", fontWeight: "700", fontSize: "16px", color: "#240F4F", mt: 2, mb: 0.5 }}>
+                New Entry
+              </Button>
+              
+              {/* New Entry Dropdown Options */}
+              <Menu
+                anchorEl={anchorElNewEntry}
+                open={Boolean(anchorElNewEntry)}
+                onClose={handleNewEntryMenuClose}
+                PaperProps={{
+                  sx: {
+                    mt: 1,
+                    borderRadius: "8px",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                    border: `1px solid ${colors.outlineVariant}`,
+                    p: 0.5
+                  }
+                }}
+              >
+                <MenuItem onClick={() => { handleNewEntryMenuClose(); window.dispatchEvent(new CustomEvent("open-add-user")); }} sx={{ fontFamily: "Inter", fontSize: "13.5px", py: 1, borderRadius: "6px" }}>
                   Register Donor
-                </Typography>
-                <Typography sx={{ fontFamily: "Poppins", fontSize: "12px", color: "#8789A3" }}>
-                  Create a new public donor profile in the database.
-                </Typography>
-              </Card>
-            </Grid>
-
-            {/* Add Administrator Modal */}
-            <Grid item xs={12} sm={6}>
-              <Card 
-                sx={{ 
-                  borderRadius: "5px",
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.03)",
-                  border: "1px solid rgba(255, 94, 0, 0.15)",
-                  transition: "transform 0.2s, box-shadow 0.2s",
-                  "&:hover": {
-                    transform: "translateY(-4px)",
-                    boxShadow: "0 6px 20px rgba(255, 94, 0, 0.12)",
-                  },
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  p: 3,
-                  textAlign: "center"
-                }}
-              >
-                <AddAdmin />
-                <Typography sx={{ fontFamily: "Poppins", fontWeight: "700", fontSize: "16px", color: "#240F4F", mt: 2, mb: 0.5 }}>
+                </MenuItem>
+                <MenuItem onClick={() => { handleNewEntryMenuClose(); window.dispatchEvent(new CustomEvent("open-add-admin")); }} sx={{ fontFamily: "Inter", fontSize: "13.5px", py: 1, borderRadius: "6px" }}>
                   Add Administrator
-                </Typography>
-                <Typography sx={{ fontFamily: "Poppins", fontSize: "12px", color: "#8789A3" }}>
-                  Register another administrator with administrative access.
-                </Typography>
+                </MenuItem>
+                <MenuItem onClick={() => { handleNewEntryMenuClose(); window.dispatchEvent(new CustomEvent("open-add-expenditure")); }} sx={{ fontFamily: "Inter", fontSize: "13.5px", py: 1, borderRadius: "6px" }}>
+                  Log Expenditure
+                </MenuItem>
+              </Menu>
+            </Box>
+          </Box>
+
+          {/* 4. Stat Summary Cards Grid */}
+          <Grid container spacing={3} sx={{ mb: 5 }}>
+            {/* Card: Total Donors */}
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ bgcolor: colors.surfaceContainerLowest, border: `1px solid ${colors.outlineVariant}`, borderRadius: "12px", boxShadow: "0 15px 20px -15px rgba(0,108,73,0.06)", position: "relative", overflow: "hidden", transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)", "&:hover": { transform: "translateY(-4px)" } }}>
+                <Box sx={{ position: "absolute", left: 0, top: 0, height: "100%", width: 4, bgcolor: colors.secondary }} />
+                <CardContent sx={{ p: 3, "&:last-child": { pb: 3 } }}>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+                    <Avatar sx={{ bgcolor: "rgba(108, 248, 187, 0.2)", width: 36, height: 36, borderRadius: "8px" }}>
+                      <GroupRoundedIcon sx={{ color: colors.secondary, fontSize: "20px" }} />
+                    </Avatar>
+                    <Typography variant="caption" sx={{ color: colors.secondaryFixedDim, fontWeight: "700", fontFamily: "Inter", fontSize: "12px" }}>
+                      +2 this month
+                    </Typography>
+                  </Box>
+                  <Typography sx={{ ...typography.labelMd, color: colors.onSurfaceVariant, mb: 0.5 }}>
+                    Total Donors
+                  </Typography>
+                  <Typography sx={{ ...typography.headlineLg, color: colors.onSurface, fontSize: "32px", fontWeight: "700", lineHeight: 1.1 }}>
+                    {loadingData ? <Skeleton variant="text" width="60%" /> : totalDonors}
+                  </Typography>
+                </CardContent>
               </Card>
             </Grid>
 
-            {/* Add Expenditure Modal */}
-            <Grid item xs={12} sm={6}>
-              <Card 
-                sx={{ 
-                  borderRadius: "5px",
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.03)",
-                  border: "1px solid rgba(255, 23, 68, 0.15)",
-                  transition: "transform 0.2s, box-shadow 0.2s",
-                  "&:hover": {
-                    transform: "translateY(-4px)",
-                    boxShadow: "0 6px 20px rgba(255, 23, 68, 0.12)",
-                  },
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  p: 3,
-                  textAlign: "center"
-                }}
-              >
-                <AddExpenditure onAddSuccess={fetchData} />
-                <Typography sx={{ fontFamily: "Poppins", fontWeight: "700", fontSize: "16px", color: "#240F4F", mt: 2, mb: 0.5 }}>
-                  Add Expenditure
-                </Typography>
-                <Typography sx={{ fontFamily: "Poppins", fontSize: "12px", color: "#8789A3" }}>
-                  Log a payout/expenditure (such as Imam pay, Mosque build-up).
-                </Typography>
+            {/* Card: Donations Collected */}
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ bgcolor: colors.surfaceContainerLowest, border: `1px solid ${colors.outlineVariant}`, borderRadius: "12px", boxShadow: "0 15px 20px -15px rgba(0,108,73,0.06)", position: "relative", overflow: "hidden", transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)", "&:hover": { transform: "translateY(-4px)" } }}>
+                <Box sx={{ position: "absolute", left: 0, top: 0, height: "100%", width: 4, bgcolor: colors.secondaryFixedDim }} />
+                <CardContent sx={{ p: 3, "&:last-child": { pb: 3 } }}>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+                    <Avatar sx={{ bgcolor: "rgba(108, 248, 187, 0.2)", width: 36, height: 36, borderRadius: "8px" }}>
+                      <VolunteerActivismRoundedIcon sx={{ color: colors.secondary, fontSize: "20px" }} />
+                    </Avatar>
+                    <Typography variant="caption" sx={{ color: colors.secondary, fontWeight: "700", fontFamily: "Inter", fontSize: "12px" }}>
+                      Healthy
+                    </Typography>
+                  </Box>
+                  <Typography sx={{ ...typography.labelMd, color: colors.onSurfaceVariant, mb: 0.5 }}>
+                    Donations Collected
+                  </Typography>
+                  <Typography sx={{ ...typography.headlineLg, color: colors.onSurface, fontSize: "32px", fontWeight: "700", lineHeight: 1.1 }}>
+                    {loadingData ? <Skeleton variant="text" width="80%" /> : `₹${donationsCollected.toLocaleString()}`}
+                  </Typography>
+                </CardContent>
               </Card>
             </Grid>
 
-            {/* Mosque Ledger Link */}
-            <Grid item xs={12} sm={6}>
-              <Card 
-                onClick={() => navigate("/showUserForMosqueAdmin")}
-                sx={{ 
-                  borderRadius: "5px",
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.03)",
-                  border: "1px solid rgba(103, 44, 188, 0.1)",
-                  transition: "transform 0.2s, box-shadow 0.2s",
-                  "&:hover": {
-                    transform: "translateY(-4px)",
-                    boxShadow: "0 6px 20px rgba(103, 44, 188, 0.1)",
-                  },
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  p: 3,
-                  textAlign: "center",
-                  cursor: "pointer"
-                }}
-              >
-                <Avatar sx={{ width: 48, height: 48, borderRadius: "5px", background: "rgba(103, 44, 188, 0.1)", mb: 1.5 }}>
-                  <PeopleAltRoundedIcon sx={{ color: "#672CBC", fontSize: "24px" }} />
-                </Avatar>
-                <Typography sx={{ fontFamily: "Poppins", fontWeight: "700", fontSize: "16px", color: "#240F4F", mb: 0.5 }}>
-                  Mosque Users
-                </Typography>
-                <Typography sx={{ fontFamily: "Poppins", fontSize: "12px", color: "#8789A3" }}>
-                  Record payments & manage Mosque Fund donors.
-                </Typography>
+            {/* Card: Total Expenditures */}
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ bgcolor: colors.surfaceContainerLowest, border: `1px solid ${colors.outlineVariant}`, borderRadius: "12px", boxShadow: "0 15px 20px -15px rgba(186,26,26,0.06)", position: "relative", overflow: "hidden", transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)", "&:hover": { transform: "translateY(-4px)" } }}>
+                <Box sx={{ position: "absolute", left: 0, top: 0, height: "100%", width: 4, bgcolor: colors.error }} />
+                <CardContent sx={{ p: 3, "&:last-child": { pb: 3 } }}>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+                    <Avatar sx={{ bgcolor: "rgba(255, 218, 214, 0.3)", width: 36, height: 36, borderRadius: "8px" }}>
+                      <PaymentsRoundedIcon sx={{ color: colors.error, fontSize: "20px" }} />
+                    </Avatar>
+                    <Typography variant="caption" sx={{ color: colors.error, fontWeight: "700", fontFamily: "Inter", fontSize: "12px" }}>
+                      High
+                    </Typography>
+                  </Box>
+                  <Typography sx={{ ...typography.labelMd, color: colors.onSurfaceVariant, mb: 0.5 }}>
+                    Total Expenditures
+                  </Typography>
+                  <Typography sx={{ ...typography.headlineLg, color: colors.onSurface, fontSize: "32px", fontWeight: "700", lineHeight: 1.1 }}>
+                    {loadingData ? <Skeleton variant="text" width="70%" /> : `₹${totalExpenditures.toLocaleString()}`}
+                  </Typography>
+                </CardContent>
               </Card>
             </Grid>
 
-            {/* Imam Ledger Link */}
-            <Grid item xs={12} sm={6}>
+            {/* Card: Net Balance (Exactly matches mockup layout) */}
+            <Grid item xs={12} sm={6} md={3}>
               <Card 
-                onClick={() => navigate("/showUserForImamAdmin")}
                 sx={{ 
-                  borderRadius: "5px",
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.03)",
-                  border: "1px solid rgba(103, 44, 188, 0.1)",
-                  transition: "transform 0.2s, box-shadow 0.2s",
-                  "&:hover": {
-                    transform: "translateY(-4px)",
-                    boxShadow: "0 6px 20px rgba(103, 44, 188, 0.1)",
-                  },
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  p: 3,
-                  textAlign: "center",
-                  cursor: "pointer"
+                  bgcolor: netBalance >= 0 ? "rgba(108, 248, 187, 0.2)" : "rgba(255, 218, 214, 0.2)",
+                  border: `1px solid ${netBalance >= 0 ? "rgba(0, 108, 73, 0.2)" : "rgba(186, 26, 26, 0.2)"}`,
+                  borderRadius: "12px", 
+                  position: "relative", 
+                  overflow: "hidden",
+                  transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)", 
+                  "&:hover": { transform: "translateY(-4px)" }
                 }}
               >
-                <Avatar sx={{ width: 48, height: 48, borderRadius: "5px", background: "rgba(0, 176, 155, 0.1)", mb: 1.5 }}>
-                  <SupervisorAccountRoundedIcon sx={{ color: "#00B09B", fontSize: "24px" }} />
-                </Avatar>
-                <Typography sx={{ fontFamily: "Poppins", fontWeight: "700", fontSize: "16px", color: "#240F4F", mb: 0.5 }}>
-                  Imam Users
-                </Typography>
-                <Typography sx={{ fontFamily: "Poppins", fontSize: "12px", color: "#8789A3" }}>
-                  Record payments & manage Imam & Staff donors.
-                </Typography>
-              </Card>
-            </Grid>
-
-            {/* Delete / Modify Users Link */}
-            <Grid item xs={12} sm={6}>
-              <Card 
-                onClick={() => navigate("/showUser")}
-                sx={{ 
-                  borderRadius: "5px",
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.03)",
-                  border: "1px solid rgba(103, 44, 188, 0.1)",
-                  transition: "transform 0.2s, box-shadow 0.2s",
-                  "&:hover": {
-                    transform: "translateY(-4px)",
-                    boxShadow: "0 6px 20px rgba(103, 44, 188, 0.1)",
-                  },
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  p: 3,
-                  textAlign: "center",
-                  cursor: "pointer"
-                }}
-              >
-                <Avatar sx={{ width: 48, height: 48, borderRadius: "5px", background: "rgba(255, 82, 82, 0.1)", mb: 1.5 }}>
-                  <DeleteRoundedIcon sx={{ color: "#ff5252", fontSize: "24px" }} />
-                </Avatar>
-                <Typography sx={{ fontFamily: "Poppins", fontWeight: "700", fontSize: "16px", color: "#240F4F", mb: 0.5 }}>
-                  Modify / Delete
-                </Typography>
-                <Typography sx={{ fontFamily: "Poppins", fontSize: "12px", color: "#8789A3" }}>
-                  Remove or edit existing records inside the system.
-                </Typography>
+                {/* Overlay gradient */}
+                <Box sx={{ position: "absolute", inset: 0, bg: `linear-gradient(135deg, ${netBalance >= 0 ? "rgba(0, 108, 73, 0.05)" : "rgba(186, 26, 26, 0.05)"} 0%, transparent 100%)`, zIndex: 1 }} />
+                <Box sx={{ position: "absolute", left: 0, top: 0, height: "100%", width: 4, bgcolor: netBalance >= 0 ? colors.secondary : colors.error, zIndex: 2 }} />
+                <CardContent sx={{ p: 3, position: "relative", zIndex: 5, "&:last-child": { pb: 3 } }}>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+                    <Avatar sx={{ bgcolor: "#ffffff", width: 36, height: 36, borderRadius: "8px", border: `1px solid ${netBalance >= 0 ? "rgba(0, 108, 73, 0.1)" : "rgba(186, 26, 26, 0.1)"}` }}>
+                      <AccountBalanceWalletRoundedIcon sx={{ color: netBalance >= 0 ? colors.secondary : colors.error, fontSize: "20px" }} />
+                    </Avatar>
+                    <Typography variant="caption" sx={{ color: netBalance >= 0 ? colors.secondary : colors.error, fontWeight: "800", letterSpacing: "1.5px", fontFamily: "Inter", textTransform: "uppercase", fontSize: "10px" }}>
+                      {netBalance >= 0 ? "SURPLUS" : "DEFICIT"}
+                    </Typography>
+                  </Box>
+                  <Typography sx={{ ...typography.labelMd, color: colors.onSurfaceVariant, mb: 0.5 }}>
+                    Net Balance
+                  </Typography>
+                  <Typography sx={{ ...typography.headlineLg, color: netBalance >= 0 ? colors.secondary : colors.error, fontSize: "32px", fontWeight: "700", lineHeight: 1.1 }}>
+                    {loadingData ? <Skeleton variant="text" width="75%" /> : `${netBalance < 0 ? "-" : ""}₹${Math.abs(netBalance).toLocaleString()}`}
+                  </Typography>
+                </CardContent>
               </Card>
             </Grid>
           </Grid>
-        </Grid>
 
-        {/* Ledgers Panel (Donations and Expenditures Side-by-Side) */}
-        <Grid item xs={12} md={5}>
-          {/* Recent Donations Ledger */}
-          <Box sx={{ mb: 4 }}>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-              <Typography variant="h6" sx={{ fontFamily: "Poppins", fontWeight: "700", color: "#240F4F" }}>
-                Recent Donations {filterYear && `(${filterYear})`}
-              </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, color: "#8789A3" }}>
-                <TrendingUpRoundedIcon fontSize="small" />
-                <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "600" }}>INCOME</Typography>
-              </Box>
-            </Box>
-            <Paper 
-              sx={{ 
-                borderRadius: "5px", 
-                p: 2.5, 
-                boxShadow: "0 2px 10px rgba(103, 44, 188, 0.03)",
-                border: "1px solid rgba(103, 44, 188, 0.08)",
-                minHeight: "220px"
-              }}
-            >
-              {recentDonations.length === 0 ? (
-                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "180px", color: "#8789A3" }}>
-                  <Avatar sx={{ width: 44, height: 44, borderRadius: "5px", background: "#f5f3ff", mb: 1.5 }}>
-                    <PeopleAltRoundedIcon sx={{ color: "#672CBC", fontSize: "20px" }} />
-                  </Avatar>
-                  <Typography sx={{ fontFamily: "Poppins", fontSize: "12px", fontWeight: "600" }}>No donations logged in {filterYear || 'All Years'}</Typography>
+          {/* 5. Main Content Columns */}
+          <Grid container spacing={4}>
+            
+            {/* LEFT COLUMN: Quick Actions & Notifications */}
+            <Grid item xs={12} lg={8}>
+              {/* Quick Actions Panel */}
+              <Box sx={{ mb: 5 }}>
+                <Typography sx={{ ...typography.headlineMd, color: colors.primary, mb: 2 }}>
+                  Quick Actions
+                </Typography>
+                
+                {/* CSS Grid layout for Quick Actions mapping directly to Tailwind class grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 */}
+                <Box 
+                  sx={{ 
+                    display: "grid", 
+                    gridTemplateColumns: { xs: "repeat(2, 1fr)", sm: "repeat(3, 1fr)", xl: "repeat(5, 1fr)" }, 
+                    gap: "16px" 
+                  }}
+                >
+                  {/* Action Card: Add Donation (Register Donor) */}
+                  <ButtonBase 
+                    onClick={() => window.dispatchEvent(new CustomEvent("open-add-user"))}
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 1.5,
+                      p: { xs: 2, md: 3 },
+                      bgcolor: colors.surfaceContainerLowest,
+                      border: `1px solid ${colors.outlineVariant}`,
+                      borderRadius: "12px",
+                      width: "100%",
+                      minHeight: 120,
+                      transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                      "&:hover": {
+                        transform: "translateY(-4px)",
+                        borderColor: colors.secondary,
+                        boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
+                        "& .action-icon": { transform: "scale(1.1)" }
+                      }
+                    }}
+                  >
+                    <AddCircleRoundedIcon className="action-icon" sx={{ color: colors.secondary, fontSize: "28px", transition: "transform 0.2s" }} />
+                    <Typography sx={{ ...typography.labelMd, color: colors.onSurface, textAlign: "center" }}>
+                      Add Donation
+                    </Typography>
+                  </ButtonBase>
+
+                  {/* Action Card: Mosque Users */}
+                  <ButtonBase 
+                    onClick={() => navigate("/showUserForMosqueAdmin")}
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 1.5,
+                      p: { xs: 2, md: 3 },
+                      bgcolor: colors.surfaceContainerLowest,
+                      border: `1px solid ${colors.outlineVariant}`,
+                      borderRadius: "12px",
+                      width: "100%",
+                      minHeight: 120,
+                      transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                      "&:hover": {
+                        transform: "translateY(-4px)",
+                        borderColor: colors.secondary,
+                        boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
+                        "& .action-icon": { transform: "scale(1.1)" }
+                      }
+                    }}
+                  >
+                    <PersonSearchRoundedIcon className="action-icon" sx={{ color: colors.secondary, fontSize: "28px", transition: "transform 0.2s" }} />
+                    <Typography sx={{ ...typography.labelMd, color: colors.onSurface, textAlign: "center" }}>
+                      Mosque Users
+                    </Typography>
+                  </ButtonBase>
+
+                  {/* Action Card: Add Expense */}
+                  <ButtonBase 
+                    onClick={() => window.dispatchEvent(new CustomEvent("open-add-expenditure"))}
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 1.5,
+                      p: { xs: 2, md: 3 },
+                      bgcolor: colors.surfaceContainerLowest,
+                      border: `1px solid ${colors.outlineVariant}`,
+                      borderRadius: "12px",
+                      width: "100%",
+                      minHeight: 120,
+                      transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                      "&:hover": {
+                        transform: "translateY(-4px)",
+                        borderColor: colors.secondary,
+                        boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
+                        "& .action-icon": { transform: "scale(1.1)" }
+                      }
+                    }}
+                  >
+                    <RemoveCircleRoundedIcon className="action-icon" sx={{ color: colors.error, fontSize: "28px", transition: "transform 0.2s" }} />
+                    <Typography sx={{ ...typography.labelMd, color: colors.onSurface, textAlign: "center" }}>
+                      Add Expense
+                    </Typography>
+                  </ButtonBase>
+
+                  {/* Action Card: Imam Users */}
+                  <ButtonBase 
+                    onClick={() => navigate("/showUserForImamAdmin")}
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 1.5,
+                      p: { xs: 2, md: 3 },
+                      bgcolor: colors.surfaceContainerLowest,
+                      border: `1px solid ${colors.outlineVariant}`,
+                      borderRadius: "12px",
+                      width: "100%",
+                      minHeight: 120,
+                      transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                      "&:hover": {
+                        transform: "translateY(-4px)",
+                        borderColor: colors.secondary,
+                        boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
+                        "& .action-icon": { transform: "scale(1.1)" }
+                      }
+                    }}
+                  >
+                    <ManageAccountsRoundedIcon className="action-icon" sx={{ color: colors.secondary, fontSize: "28px", transition: "transform 0.2s" }} />
+                    <Typography sx={{ ...typography.labelMd, color: colors.onSurface, textAlign: "center" }}>
+                      Imam Users
+                    </Typography>
+                  </ButtonBase>
+
+                  {/* Action Card: Modify / Delete */}
+                  <ButtonBase 
+                    onClick={() => navigate("/showUser")}
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 1.5,
+                      p: { xs: 2, md: 3 },
+                      bgcolor: colors.surfaceContainerLowest,
+                      border: `1px solid ${colors.outlineVariant}`,
+                      borderRadius: "12px",
+                      width: "100%",
+                      minHeight: 120,
+                      transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                      "&:hover": {
+                        transform: "translateY(-4px)",
+                        borderColor: colors.error,
+                        boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
+                        "& .action-icon": { transform: "scale(1.1)" }
+                      }
+                    }}
+                  >
+                    <DeleteSweepRoundedIcon className="action-icon" sx={{ color: colors.onSurfaceVariant, fontSize: "28px", transition: "transform 0.2s" }} />
+                    <Typography sx={{ ...typography.labelMd, color: colors.onSurface, textAlign: "center" }}>
+                      Modify / Delete
+                    </Typography>
+                  </ButtonBase>
                 </Box>
-              ) : (
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                  {recentDonations.map((donation) => (
-                    <Box 
-                      key={donation.id} 
-                      sx={{ 
-                        display: "flex", 
-                        alignItems: "center", 
-                        justifyContent: "space-between", 
-                        p: 1.25,
-                        borderRadius: "5px",
-                        backgroundColor: "#fafafa",
-                        borderLeft: `4px solid ${donation.type === "Mosque Fund" ? "#672CBC" : "#00B09B"}`,
-                        transition: "background-color 0.2s",
-                        "&:hover": {
-                          backgroundColor: "#f5f3ff"
-                        }
-                      }}
-                    >
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                        <Avatar 
-                          sx={{ 
-                            width: 32, 
-                            height: 32, 
-                            borderRadius: "5px",
-                            fontSize: "12px", 
-                            fontWeight: "700",
-                            fontFamily: "Poppins",
-                            background: donation.type === "Mosque Fund" ? "rgba(103, 44, 188, 0.1)" : "rgba(0, 176, 155, 0.1)",
-                            color: donation.type === "Mosque Fund" ? "#672CBC" : "#00B09B"
-                          }}
-                        >
-                          {donation.userName.charAt(0).toUpperCase()}
-                        </Avatar>
-                        <Box>
-                          <Typography sx={{ fontFamily: "Poppins", fontSize: "12.5px", fontWeight: "700", color: "#240F4F" }}>
-                            {donation.userName}
-                          </Typography>
-                          <Typography sx={{ fontFamily: "Poppins", fontSize: "10.5px", color: "#8789A3" }}>
-                            {donation.dateStr} • {donation.type}
-                          </Typography>
-                        </Box>
-                      </Box>
-                      <Typography 
-                        sx={{ 
-                          fontFamily: "Poppins", 
-                          fontSize: "13.5px", 
-                          fontWeight: "800", 
-                          color: donation.type === "Mosque Fund" ? "#672CBC" : "#00B09B" 
-                        }}
+              </Box>
+
+
+            </Grid>
+
+            {/* RIGHT COLUMN: Feeds (Donations & Expenditures) */}
+            <Grid item xs={12} lg={4}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                
+                {/* Recent Donations Ledger */}
+                <Box>
+                  <Card sx={{ bgcolor: colors.surfaceContainerLowest, border: `1px solid ${colors.outlineVariant}`, borderRadius: "16px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.01)" }}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: colors.surfaceContainerLow, borderBottom: `1px solid ${colors.outlineVariant}`, px: 3, py: 2 }}>
+                      <Typography sx={{ ...typography.headlineMd, color: colors.primary, fontSize: "18px", display: "flex", alignItems: "center", gap: 1 }}>
+                        <TrendingUpRoundedIcon sx={{ color: colors.secondary, fontSize: "22px" }} /> Recent Donations
+                      </Typography>
+                      <ButtonBase 
+                        onClick={() => navigate("/showUserForMosqueAdmin")} 
+                        sx={{ color: colors.secondary, fontWeight: "700", fontSize: "12px", letterSpacing: "1px", textTransform: "uppercase", fontFamily: "Inter" }}
                       >
-                        + ₹{donation.amount}
+                        View All
+                      </ButtonBase>
+                    </Box>
+                    
+                    <Box sx={{ p: 1.5 }}>
+                      {loadingData ? (
+                        <Box sx={{ display: "flex", flexDirection: "column" }}>
+                          {[1, 2, 3, 4, 5].map((item, idx) => (
+                            <Box 
+                              key={item} 
+                              sx={{ 
+                                display: "flex", 
+                                alignItems: "center", 
+                                justifyContent: "space-between", 
+                                px: 2.5,
+                                py: 2,
+                                borderBottom: idx < 4 ? `1px solid ${colors.outlineVariant}` : "none"
+                              }}
+                            >
+                              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                                <Skeleton variant="circular" width={40} height={40} />
+                                <Box>
+                                  <Skeleton variant="text" width={100} height={20} />
+                                  <Skeleton variant="text" width={70} height={14} />
+                                </Box>
+                              </Box>
+                              <Skeleton variant="text" width={50} height={24} />
+                            </Box>
+                          ))}
+                        </Box>
+                      ) : recentDonations.length === 0 ? (
+                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 180, gap: 1.5, color: colors.outline }}>
+                          <Avatar sx={{ bgcolor: "rgba(108, 248, 187, 0.1)", width: 44, height: 44 }}>
+                            <GroupRoundedIcon sx={{ color: colors.secondary }} />
+                          </Avatar>
+                          <Typography sx={{ fontFamily: "Inter", fontSize: "12px", fontWeight: "600" }}>No donations logged in {filterYear || 'All'}</Typography>
+                        </Box>
+                      ) : (
+                        <Box sx={{ display: "flex", flexDirection: "column" }}>
+                          {recentDonations.map((donation, index) => (
+                            <Box 
+                              key={`${donation.id}-${index}`} 
+                              sx={{ 
+                                display: "flex", 
+                                alignItems: "center", 
+                                justifyContent: "space-between", 
+                                px: 2.5,
+                                py: 2,
+                                borderBottom: index < recentDonations.length - 1 ? `1px solid ${colors.outlineVariant}` : "none",
+                                transition: "background-color 0.2s",
+                                "&:hover": { bgcolor: "rgba(0, 108, 73, 0.05)" }
+                              }}
+                            >
+                              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                                <Avatar sx={{ 
+                                  bgcolor: donation.type === "Mosque Fund" ? "rgba(108, 248, 187, 0.2)" : colors.surfaceContainerHigh,
+                                  color: donation.type === "Mosque Fund" ? colors.secondary : colors.onSurfaceVariant,
+                                  width: 40, 
+                                  height: 40,
+                                  fontSize: "16px",
+                                  fontWeight: "700",
+                                  fontFamily: "Inter"
+                                }}>
+                                  {donation.userName.charAt(0).toUpperCase()}
+                                </Avatar>
+                                <Box>
+                                  <Typography sx={{ ...typography.bodyMd, fontWeight: "600", color: colors.onSurface }}>
+                                    {donation.userName}
+                                  </Typography>
+                                  <Typography sx={{ ...typography.labelSm, color: colors.onSurfaceVariant, fontWeight: "500" }}>
+                                    {donation.type} • {donation.dateStr}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                              <Typography sx={{ ...typography.headlineMd, fontSize: "16px", color: colors.secondary }}>
+                                + ₹{donation.amount}
+                              </Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
+                    </Box>
+                  </Card>
+                </Box>
+
+                {/* Recent Expenditures Ledger */}
+                <Box>
+                  <Card sx={{ bgcolor: colors.surfaceContainerLowest, border: `1px solid ${colors.outlineVariant}`, borderRadius: "16px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.01)" }}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", bgcolor: colors.surfaceContainerLow, borderBottom: `1px solid ${colors.outlineVariant}`, px: 3, py: 2 }}>
+                      <Typography sx={{ ...typography.headlineMd, color: colors.error, fontSize: "18px", display: "flex", alignItems: "center", gap: 1 }}>
+                        <TrendingDownRoundedIcon sx={{ color: colors.error, fontSize: "22px" }} /> Expenditures
                       </Typography>
                     </Box>
-                  ))}
-                </Box>
-              )}
-            </Paper>
-          </Box>
-
-          {/* Recent Expenditures Ledger */}
-          <Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-              <Typography variant="h6" sx={{ fontFamily: "Poppins", fontWeight: "700", color: "#240F4F" }}>
-                Recent Expenditures {filterYear && `(${filterYear})`}
-              </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, color: "#ff5252" }}>
-                <MoneyOffCsredRoundedIcon fontSize="small" />
-                <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "600" }}>EXPENSE</Typography>
-              </Box>
-            </Box>
-            <Paper 
-              sx={{ 
-                borderRadius: "5px", 
-                p: 2.5, 
-                boxShadow: "0 2px 10px rgba(103, 44, 188, 0.03)",
-                border: "1px solid rgba(103, 44, 188, 0.08)",
-                minHeight: "220px"
-              }}
-            >
-              {recentExpenditures.length === 0 ? (
-                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "180px", color: "#8789A3" }}>
-                  <Avatar sx={{ width: 44, height: 44, borderRadius: "5px", background: "rgba(255, 23, 68, 0.05)", mb: 1.5 }}>
-                    <MoneyOffCsredRoundedIcon sx={{ color: "#ff5252", fontSize: "20px" }} />
-                  </Avatar>
-                  <Typography sx={{ fontFamily: "Poppins", fontSize: "12px", fontWeight: "600" }}>No expenditures logged in {filterYear || 'All Years'}</Typography>
-                </Box>
-              ) : (
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                  {recentExpenditures.map((exp) => (
-                    <Box 
-                      key={exp.id} 
-                      sx={{ 
-                        display: "flex", 
-                        alignItems: "center", 
-                        justifyContent: "space-between", 
-                        p: 1.25,
-                        borderRadius: "5px",
-                        backgroundColor: "#fafafa",
-                        borderLeft: "4px solid #ff5252",
-                        transition: "background-color 0.2s",
-                        "&:hover": {
-                          backgroundColor: "#fff5f5"
-                        }
-                      }}
-                    >
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                        <Avatar 
-                          sx={{ 
-                            width: 32, 
-                            height: 32, 
-                            borderRadius: "5px",
-                            fontSize: "12px", 
-                            fontWeight: "700",
-                            fontFamily: "Poppins",
-                            background: "rgba(255, 82, 82, 0.1)",
-                            color: "#ff5252"
-                          }}
-                        >
-                          {exp.category.charAt(0).toUpperCase()}
-                        </Avatar>
-                        <Box>
-                          <Typography sx={{ fontFamily: "Poppins", fontSize: "12.5px", fontWeight: "700", color: "#240F4F" }}>
-                            {exp.category}
-                          </Typography>
-                          <Typography sx={{ fontFamily: "Poppins", fontSize: "10.5px", color: "#8789A3" }}>
-                            {exp.day}/{exp.month}/{exp.year} {exp.description && `• ${exp.description}`}
-                          </Typography>
+                    
+                    <Box sx={{ p: 1.5 }}>
+                      {loadingData ? (
+                        <Box sx={{ display: "flex", flexDirection: "column" }}>
+                          {[1, 2, 3, 4, 5].map((item, idx) => (
+                            <Box 
+                              key={item} 
+                              sx={{ 
+                                display: "flex", 
+                                alignItems: "center", 
+                                justifyContent: "space-between", 
+                                px: 2.5,
+                                py: 2,
+                                borderBottom: idx < 4 ? `1px solid ${colors.outlineVariant}` : "none"
+                              }}
+                            >
+                              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                                <Skeleton variant="circular" width={40} height={40} />
+                                <Box>
+                                  <Skeleton variant="text" width={100} height={20} />
+                                  <Skeleton variant="text" width={70} height={14} />
+                                </Box>
+                              </Box>
+                              <Skeleton variant="text" width={50} height={24} />
+                            </Box>
+                          ))}
                         </Box>
-                      </Box>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                        <Typography 
-                          sx={{ 
-                            fontFamily: "Poppins", 
-                            fontSize: "13.5px", 
-                            fontWeight: "800", 
-                            color: "#ff5252",
-                            mr: 1
-                          }}
-                        >
-                          - ₹{exp.amount}
-                        </Typography>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleEditExpenditureClick(exp)}
-                          sx={{ 
-                            color: "#8789A3",
-                            "&:hover": { color: "#672CBC" }
-                          }}
-                        >
-                          <EditOutlinedIcon sx={{ fontSize: "18px" }} />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDeleteExpenditure(exp.id)}
-                          sx={{ 
-                            color: "#8789A3",
-                            "&:hover": { color: "#ff5252" }
-                          }}
-                        >
-                          <DeleteRoundedIcon sx={{ fontSize: "18px" }} />
-                        </IconButton>
-                      </Box>
+                      ) : recentExpenditures.length === 0 ? (
+                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 180, gap: 1.5, color: colors.outline }}>
+                          <Avatar sx={{ bgcolor: "rgba(255, 218, 214, 0.3)", width: 44, height: 44 }}>
+                            <PaymentsRoundedIcon sx={{ color: colors.error }} />
+                          </Avatar>
+                          <Typography sx={{ fontFamily: "Inter", fontSize: "12px", fontWeight: "600" }}>No expenditures logged in {filterYear || 'All'}</Typography>
+                        </Box>
+                      ) : (
+                        <Box sx={{ display: "flex", flexDirection: "column" }}>
+                          {recentExpenditures.map((exp, index) => (
+                            <Box 
+                              key={exp.id} 
+                              sx={{ 
+                                display: "flex", 
+                                alignItems: "center", 
+                                justifyContent: "space-between", 
+                                px: 2.5,
+                                py: 2,
+                                borderBottom: index < recentExpenditures.length - 1 ? `1px solid ${colors.outlineVariant}` : "none",
+                                transition: "background-color 0.2s",
+                                "&:hover": { 
+                                  bgcolor: "rgba(186, 26, 26, 0.05)",
+                                  "& .action-buttons": { opacity: 1, width: 60 }
+                                }
+                              }}
+                            >
+                              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                                <Avatar sx={{ 
+                                  bgcolor: "rgba(255, 218, 214, 0.3)",
+                                  color: colors.error,
+                                  width: 40, 
+                                  height: 40,
+                                  borderRadius: "8px"
+                                }}>
+                                  <ConstructionRoundedIcon sx={{ fontSize: "20px" }} />
+                                </Avatar>
+                                <Box>
+                                  <Typography sx={{ ...typography.bodyMd, fontWeight: "600", color: colors.onSurface }}>
+                                    {exp.category}
+                                  </Typography>
+                                  <Typography sx={{ ...typography.labelSm, color: colors.onSurfaceVariant, fontWeight: "500" }}>
+                                    {exp.day}/{exp.month}/{exp.year} {exp.description && `• ${exp.description}`}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                              
+                              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                                <Typography sx={{ ...typography.headlineMd, fontSize: "16px", color: colors.error, mr: 0.5 }}>
+                                  - ₹{exp.amount}
+                                </Typography>
+                                
+                                {/* Sliding Fade-in Action Buttons on Hover */}
+                                <Box 
+                                  className="action-buttons" 
+                                  sx={{ 
+                                    display: "flex", 
+                                    alignItems: "center", 
+                                    gap: 0.5, 
+                                    opacity: 0, 
+                                    width: 0,
+                                    overflow: "hidden",
+                                    transition: "opacity 0.2s ease, width 0.2s ease" 
+                                  }}
+                                >
+                                  <IconButton 
+                                    size="small" 
+                                    onClick={() => handleEditExpenditureClick(exp)}
+                                    sx={{ color: colors.outline, p: 0.5, "&:hover": { color: colors.secondary } }}
+                                  >
+                                    <EditOutlinedIcon sx={{ fontSize: "18px" }} />
+                                  </IconButton>
+                                  
+                                  <IconButton 
+                                    size="small" 
+                                    onClick={() => handleDeleteExpenditure(exp.id)}
+                                    sx={{ color: colors.outline, p: 0.5, "&:hover": { color: colors.error } }}
+                                  >
+                                    <DeleteRoundedIcon sx={{ fontSize: "18px" }} />
+                                  </IconButton>
+                                </Box>
+                              </Box>
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
                     </Box>
-                  ))}
+                  </Card>
                 </Box>
-              )}
-            </Paper>
-          </Box>
-        </Grid>
-      </Grid>
+
+              </Box>
+            </Grid>
+
+          </Grid>
+
+
+      {/* 4. MODALS AND DIALOGS (CONTROLLED STATE) */}
       <EditExpenditure
         open={editDialogOpen}
         onClose={() => setEditDialogOpen(false)}
         expenditure={selectedExpenditure}
         onSuccess={fetchData}
       />
-    </Container>
+
+      {/* Snackbar feedback */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: "100%", fontFamily: "Inter" }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+
+    </>
   );
 };
 

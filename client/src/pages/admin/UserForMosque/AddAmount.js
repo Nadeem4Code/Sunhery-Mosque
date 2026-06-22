@@ -8,6 +8,8 @@ import "react-toastify/dist/ReactToastify.css";
 // Loader
 
 import CircularProgress from "@mui/material/CircularProgress";
+import Skeleton from "@mui/material/Skeleton";
+import Box from "@mui/material/Box";
 //Firebase
 
 import { getTaskById, updateTask } from "../../../config/firebase";
@@ -156,13 +158,13 @@ const AddAmount = () => {
       // Year exists in the database, update the amount for the current month
       const yearData = updatedTaskData.mosque[yearIndex];
 
-      // Find the index of the current month in the year's data
+      // Find the index of the current month and day in the year's data
       const monthIndex = yearData.months.findIndex(
-        (month) => month.month === currentMonth
+        (m) => m.month === currentMonth && m.day === day
       );
 
       if (monthIndex !== -1) {
-        // Month exists, update the amount
+        // Month and day exist, update the amount
         yearData.months[monthIndex].amount += newAmount;
       } else {
         // Month doesn't exist, create a new month object
@@ -317,18 +319,36 @@ const AddAmount = () => {
         </DialogContent>
       </Dialog>
       {loading ? (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100vh",
-          }}
-        >
-          <CircularProgress color="success" />
+        <div style={{ marginTop: "20px" }}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                <Box sx={{ flexGrow: 1 }}>
+                  {/* User Profile Skeletons */}
+                  <Skeleton variant="text" width="30%" height={32} sx={{ mb: 1 }} />
+                  <Skeleton variant="text" width="20%" height={20} />
+                </Box>
+                {/* Add Amount Button Skeleton */}
+                <Skeleton variant="rectangular" width={120} height={40} sx={{ borderRadius: "8px" }} />
+              </Box>
+
+              <Box sx={{ mt: 4 }}>
+                {/* Year Header Skeleton */}
+                <Skeleton variant="text" width="15%" height={28} sx={{ mb: 2 }} />
+                {/* Contribution list grid skeleton */}
+                <Grid container spacing={2}>
+                  {[1, 2, 3, 4].map((item) => (
+                    <Grid item xs={12} md={3} key={item}>
+                      <Skeleton variant="rectangular" height={45} sx={{ borderRadius: "5px" }} />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            </CardContent>
+          </Card>
         </div>
       ) : (
-        <div style={{ marginTop: "100px" }}>
+        <div>
           <Card>
             <CardContent>
               <div style={{ display: "flex", alignItems: "center" }}>
@@ -442,7 +462,7 @@ const AddAmount = () => {
                       </div>
                       <Grid container>
                         {yearData?.months?.map((month, index) => (
-                          <Grid item xs={12} md={3} key={month.month}>
+                          <Grid item xs={12} md={3} key={index}>
                             <div>
                               <Typography
                                 style={{

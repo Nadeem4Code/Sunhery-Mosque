@@ -22,6 +22,7 @@ import SearchSecond from '../../assets/icons/searchSecond.svg'
 // Loader
 
 import CircularProgress from "@mui/material/CircularProgress";
+import Skeleton from "@mui/material/Skeleton";
 
 // Firebase
 import { getAllTasks } from "../../config/firebase";
@@ -53,16 +54,42 @@ function ShowUserPublic() {
   return (
     <Box style={{ marginTop: "24px" }}>
       {loading ? (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "80vh",
-          }}
-        >
-          <CircularProgress color="success" />
-        </div>
+        <Card style={{ boxShadow: "none" }}>
+          {/* Search bar skeleton */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "center",
+              marginTop: "10px",
+              marginBottom: "20px",
+            }}
+          >
+            <Skeleton variant="rectangular" width={220} height={40} sx={{ borderRadius: "5px" }} />
+          </div>
+          <Card>
+            <CardContent>
+              <Skeleton variant="text" width="10%" height={24} sx={{ mb: 2 }} />
+
+              <Grid container spacing={2}>
+                {[1, 2, 3, 4, 5, 6].map((item) => (
+                  <Grid key={item} item xs={12} md={6} sm={12}>
+                    <Box sx={{ width: "100%", display: "flex", alignItems: "center", py: 1 }}>
+                      <Skeleton variant="circular" width={40} height={40} sx={{ mr: 2 }} />
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Skeleton variant="text" width="60%" height={24} />
+                        <Skeleton variant="text" width="40%" height={16} />
+                      </Box>
+                      <Skeleton variant="text" width="80px" height={20} sx={{ mr: 2 }} />
+                      <Skeleton variant="circular" width={24} height={24} />
+                    </Box>
+                    <Divider style={{ width: "100%" }} />
+                  </Grid>
+                ))}
+              </Grid>
+            </CardContent>
+          </Card>
+        </Card>
       ) : (
         <Card style={{ boxShadow: "none" }}>
           <div

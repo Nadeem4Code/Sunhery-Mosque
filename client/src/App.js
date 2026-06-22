@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useContext, lazy, Suspense } from "react";
-import { CircularProgress, Box } from "@mui/material";
+import { CircularProgress, Box, Grid, Card, Skeleton } from "@mui/material";
 import {
   createBrowserRouter,
   Route,
@@ -10,6 +10,7 @@ import { RouterProvider } from "react-router";
 import Header from "./components/common/Header";
 import Footer from "./components/common/Footer";
 import AdminProtectedRoute from "./components/common/AdminProtectedRoute";
+import AdminDashboardLayout from "./components/common/AdminDashboardLayout";
 import UserContext from "./context/BooksContext";
 
 // Lazy-load page components for route-based code splitting
@@ -33,6 +34,52 @@ const FooterPlaceholder = () => {
   return <Footer />;
 };
 
+const WebsiteSkeleton = () => {
+  return (
+    <Box sx={{ width: "100%", minHeight: "100vh", bgcolor: "#f8f9ff" }}>
+      {/* Header Shell */}
+      <Box sx={{ height: 64, bgcolor: "#ffffff", borderBottom: "1px solid #bfc8c8", px: 3, display: "flex", alignItems: "center", justifyContent: "space-between", boxSizing: "border-box" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Skeleton variant="circular" width={40} height={40} />
+          <Skeleton variant="text" width={120} height={24} />
+        </Box>
+        <Box sx={{ display: "flex", gap: 3 }}>
+          <Skeleton variant="text" width={60} height={20} />
+          <Skeleton variant="text" width={60} height={20} />
+          <Skeleton variant="text" width={60} height={20} />
+        </Box>
+      </Box>
+
+      {/* Main Content Area */}
+      <Box sx={{ p: 4, maxWidth: 1200, margin: "0 auto", boxSizing: "border-box" }}>
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={8}>
+            <Skeleton variant="rectangular" height={200} sx={{ borderRadius: "12px", mb: 4 }} />
+            <Skeleton variant="text" width="40%" height={32} sx={{ mb: 2 }} />
+            <Skeleton variant="rectangular" height={150} sx={{ borderRadius: "12px" }} />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card sx={{ p: 3, borderRadius: "12px", border: "1px solid #bfc8c8", boxShadow: "none" }}>
+              <Skeleton variant="text" width="60%" height={24} sx={{ mb: 3 }} />
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Skeleton key={i} variant="rectangular" height={40} sx={{ borderRadius: "8px" }} />
+                ))}
+              </Box>
+            </Card>
+          </Grid>
+        </Grid>
+      </Box>
+
+      {/* Footer Outline */}
+      <Box sx={{ height: 120, bgcolor: "#eff1f3", mt: 8, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: 1, boxSizing: "border-box" }}>
+        <Skeleton variant="text" width={200} height={16} />
+        <Skeleton variant="text" width={150} height={16} />
+      </Box>
+    </Box>
+  );
+};
+
 const App = () => {
   const { fetchBooks } = useContext(UserContext);
 
@@ -42,39 +89,36 @@ const App = () => {
 
   const router = createBrowserRouter(
     createRoutesFromElements(
-      <Route
-        path="/"
-        element={
-          <>
-            <Header />
-            <FooterPlaceholder />
-          </>
-        }
-      >
-        <Route index element={<Home />} />
-      
-        <Route path="showUserPublic" element={<ShowUserPublic />} />
-        <Route path="/user/:id" element={<UserDetails />} />
-        <Route path="donation" element={<Donate />} />
-        <Route path="login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/reset" element={<Reset />} />
+      <Route path="/">
+        {/* Public Routes - Wrapped with Header & Footer */}
+        <Route
+          element={
+            <>
+              <Header />
+              <FooterPlaceholder />
+            </>
+          }
+        >
+          <Route index element={<Home />} />
+          <Route path="showUserPublic" element={<ShowUserPublic />} />
+          <Route path="user/:id" element={<UserDetails />} />
+          <Route path="donation" element={<Donate />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
+          <Route path="reset" element={<Reset />} />
+        </Route>
 
-        {/* Admin Protected Routes */}
+        {/* Admin Routes - Wrapped with Admin Dashboard Layout Frame (No public Header/Footer) */}
         <Route element={<AdminProtectedRoute />}>
-          <Route path="addUser" element={<AddUser />} />
-          <Route path="showUser" element={<ShowUser />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route
-            path="/showUserForMosqueAdmin"
-            element={<ShowUserForMosqueAdmin />}
-          />
-          <Route path="/addAmount/:id" element={<AddAmount />} />
-          <Route
-            path="/showUserForImamAdmin"
-            element={<ShowUserForImamAdmin />}
-          />
-          <Route path="/addAmountForImam/:id" element={<AddAmountForImam />} />
+          <Route element={<AdminDashboardLayout />}>
+            <Route path="addUser" element={<AddUser />} />
+            <Route path="showUser" element={<ShowUser />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="showUserForMosqueAdmin" element={<ShowUserForMosqueAdmin />} />
+            <Route path="addAmount/:id" element={<AddAmount />} />
+            <Route path="showUserForImamAdmin" element={<ShowUserForImamAdmin />} />
+            <Route path="addAmountForImam/:id" element={<AddAmountForImam />} />
+          </Route>
         </Route>
       </Route>
     )
@@ -87,11 +131,7 @@ const App = () => {
 
   return (
     <div ref={scrollInto}>
-      <Suspense fallback={
-        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "90vh" }}>
-          <CircularProgress color="secondary" />
-        </Box>
-      }>
+      <Suspense fallback={<WebsiteSkeleton />}>
         <RouterProvider router={router} />
       </Suspense>
     </div>

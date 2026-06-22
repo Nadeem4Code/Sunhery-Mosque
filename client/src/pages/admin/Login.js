@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, Typography, Button, CircularProgress, Box, Grid, TextField } from "@mui/material";
+import { Card, CardContent, Typography, Button, CircularProgress, Box, Grid, TextField, Skeleton } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { auth, logInWithEmailAndPassword, registerUserBeforePayment } from "../../config/firebase";
@@ -210,16 +210,52 @@ const Login = () => {
 
   if (loading || checkingRole) {
     return (
-      <div
-        style={{
+      <Box
+        sx={{
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          height: "90vh",
+          padding: "40px 20px",
+          background: "linear-gradient(180deg, #F9F9FB 0%, #F1EEF6 100%)",
+          minHeight: "85vh",
         }}
       >
-        <CircularProgress color="secondary" />
-      </div>
+        <Card
+          sx={{
+            maxWidth: "480px",
+            width: "100%",
+            borderRadius: "20px",
+            boxShadow: "0 15px 35px rgba(103, 44, 188, 0.08)",
+            overflow: "hidden",
+            border: "1px solid rgba(187, 196, 206, 0.35)",
+          }}
+        >
+          {/* Header Block matching Home Page Theme */}
+          <Box
+            sx={{
+              background: "linear-gradient(135deg, #863ED5 0%, #240F4F 100%)",
+              color: "#ffffff",
+              p: 4,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <Skeleton variant="circular" width={40} height={40} sx={{ bgcolor: "rgba(255,255,255,0.2)", mb: 1 }} />
+            <Skeleton variant="text" width="60%" height={32} sx={{ bgcolor: "rgba(255,255,255,0.2)", mb: 1.2 }} />
+            <Skeleton variant="text" width="85%" height={20} sx={{ bgcolor: "rgba(255,255,255,0.2)" }} />
+            <Skeleton variant="text" width="70%" height={20} sx={{ bgcolor: "rgba(255,255,255,0.2)" }} />
+          </Box>
+
+          <CardContent sx={{ p: 4 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+              <Skeleton variant="rectangular" height={56} sx={{ borderRadius: "4px" }} />
+              <Skeleton variant="rectangular" height={56} sx={{ borderRadius: "4px" }} />
+              <Skeleton variant="rectangular" height={45} sx={{ borderRadius: "12px", mt: 1 }} />
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
     );
   }
 

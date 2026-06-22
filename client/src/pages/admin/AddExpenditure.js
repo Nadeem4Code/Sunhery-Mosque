@@ -34,22 +34,31 @@ const categories = [
   "Utilities & Bills"
 ];
 
-const AddExpenditure = ({ onAddSuccess }) => {
-  const [open, setOpen] = useState(false);
+const AddExpenditure = ({ onAddSuccess, open: propOpen, onClose: propOnClose }) => {
+  const [localOpen, setOpen] = useState(false);
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(dayjs());
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const isControlled = propOpen !== undefined;
+  const open = isControlled ? propOpen : localOpen;
+
   const handleClickOpen = () => {
-    setOpen(true);
+    if (!isControlled) {
+      setOpen(true);
+    }
   };
 
   const handleClose = () => {
     if (submitting) return;
-    setOpen(false);
-    resetForm();
+    if (isControlled) {
+      if (propOnClose) propOnClose();
+    } else {
+      setOpen(false);
+      resetForm();
+    }
   };
 
   const resetForm = () => {
@@ -93,7 +102,11 @@ const AddExpenditure = ({ onAddSuccess }) => {
       }
 
       setTimeout(() => {
-        setOpen(false);
+        if (isControlled) {
+          if (propOnClose) propOnClose();
+        } else {
+          setOpen(false);
+        }
         resetForm();
       }, 1500);
 
@@ -107,21 +120,23 @@ const AddExpenditure = ({ onAddSuccess }) => {
 
   return (
     <div>
-      <Avatar
-        onClick={handleClickOpen}
-        style={{
-          width: "48px",
-          height: "48px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          background: "linear-gradient(135deg, #ff5252 0%, #ff1744 100%)",
-          borderRadius: "5px",
-          cursor: "pointer"
-        }}
-      >
-        <AccountBalanceWalletRoundedIcon style={{ color: "white", fontSize: "24px" }} />
-      </Avatar>
+      {!isControlled && (
+        <Avatar
+          onClick={handleClickOpen}
+          style={{
+            width: "48px",
+            height: "48px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            background: "linear-gradient(135deg, #ff5252 0%, #ff1744 100%)",
+            borderRadius: "5px",
+            cursor: "pointer"
+          }}
+        >
+          <AccountBalanceWalletRoundedIcon style={{ color: "white", fontSize: "24px" }} />
+        </Avatar>
+      )}
 
       <Dialog
         open={open}
