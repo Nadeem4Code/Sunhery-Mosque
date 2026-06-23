@@ -437,7 +437,7 @@ const IslamicDateCard = () => {
     const today = new Date();
     
     // Moonsighting adjustment offset
-    const hijriOffset = 1; 
+    const hijriOffset = 0; 
     
     const hDate = getHijriDateAlgorithmic(today, hijriOffset);
     setHijriDate(`${hDate.day} ${hDate.month} ${hDate.year} AH`);
