@@ -14,9 +14,7 @@ import { Outlet } from "react-router-dom";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
 import Divider from "@mui/material/Divider";
-import ListSubheader from "@mui/material/ListSubheader";
 
 // Css file
 import "./Home.css";
@@ -1189,7 +1187,16 @@ const Home = () => {
                                       colorCode={mosqueStatus.color} 
                                       statusText={mosqueStatus.label} 
                                     />
-                                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.4, flex: 1 }}>
+                                    <Box sx={{ 
+                                      display: "flex", 
+                                      flexDirection: { xs: "row", sm: "column" }, 
+                                      justifyContent: { xs: "space-between", sm: "flex-start" },
+                                      alignItems: { xs: "center", sm: "flex-start" },
+                                      gap: { xs: 1.5, sm: 0.4 }, 
+                                      flex: 1,
+                                      flexWrap: "wrap",
+                                      pl: { xs: 1, sm: 0 }
+                                    }}>
                                       <Box>
                                         <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "9px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                                           Collected
@@ -1231,7 +1238,16 @@ const Home = () => {
                                       colorCode={imamStatus.color} 
                                       statusText={imamStatus.label} 
                                     />
-                                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.4, flex: 1 }}>
+                                    <Box sx={{ 
+                                      display: "flex", 
+                                      flexDirection: { xs: "row", sm: "column" }, 
+                                      justifyContent: { xs: "space-between", sm: "flex-start" },
+                                      alignItems: { xs: "center", sm: "flex-start" },
+                                      gap: { xs: 1.5, sm: 0.4 }, 
+                                      flex: 1,
+                                      flexWrap: "wrap",
+                                      pl: { xs: 1, sm: 0 }
+                                    }}>
                                       <Box>
                                         <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "9px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                                           Collected
