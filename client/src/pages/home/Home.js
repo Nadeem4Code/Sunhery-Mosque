@@ -315,7 +315,7 @@ const IslamicDateCard = () => {
         </Box>
         <Box 
           sx={{ 
-            bgcolor: "rgba(103, 44, 188, 0.1)", 
+            bgcolor: "rgba(255, 179, 0, 0.12)", // Golden/Amber glow background
             width: 36, 
             height: 36, 
             borderRadius: "8px",
@@ -324,7 +324,7 @@ const IslamicDateCard = () => {
             justifyContent: "center"
           }}
         >
-          <Brightness3Icon sx={{ color: "#672CBC", fontSize: "20px", transform: "rotate(-15deg)" }} />
+          <Brightness3Icon className="moon-animated" sx={{ fontSize: "20px" }} />
         </Box>
       </Box>
 
