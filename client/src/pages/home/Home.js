@@ -220,7 +220,7 @@ const IslamicDateCard = () => {
     const today = new Date();
     
     // Configurable offset in days (for moonsighting adjustments)
-    const hijriOffset = 0; 
+    const hijriOffset = -1; 
     const adjustedDate = new Date(today);
     adjustedDate.setDate(today.getDate() + hijriOffset);
 
