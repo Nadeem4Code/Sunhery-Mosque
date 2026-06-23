@@ -24,6 +24,7 @@ import "./Home.css";
 // Icons
 import QuranIcon from "../../components/common/QuranIcon";
 import Brightness3Icon from "@mui/icons-material/Brightness3";
+import MenuBookRoundedIcon from "@mui/icons-material/MenuBookRounded";
 import book from "../../assets/icons/book.svg";
 import one from "../../assets/icons/one.svg";
 import two from "../../assets/icons/two.svg";
@@ -1194,67 +1195,94 @@ const Home = () => {
                   <Grid item xs={12} md={6}>
                     <Card
                       sx={{
-                        background: "linear-gradient(135deg, #863ED5 0%, #240F4F 100%)", // Deep purple gradient
-                        color: "#fff",
-                        borderRadius: "5px",
-                        boxShadow: "0 8px 32px 0 rgba(134, 62, 213, 0.2)",
+                        bgcolor: "#ffffff", // Pure white like admin dashboard
+                        border: "1px solid rgba(0, 0, 0, 0.08)", // Muted border
+                        borderRadius: "12px", // Matching 12px border radius
+                        boxShadow: "0 15px 20px -15px rgba(103, 44, 188, 0.06)", // Soft purple shadow
+                        position: "relative",
+                        overflow: "hidden",
                         p: 3,
                         height: "100%",
                         display: "flex",
                         flexDirection: "column",
-                        justifyContent: "center",
+                        justifyContent: "space-between",
                         minHeight: "260px",
-                        transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                        transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
                         "&:hover": {
                           transform: "translateY(-4px)",
-                          boxShadow: "0 12px 40px 0 rgba(134, 62, 213, 0.35)",
+                          boxShadow: "0 20px 25px -15px rgba(103, 44, 188, 0.12)",
                         }
                       }}
                     >
-                      <Box textAlign="center">
+                      {/* Accent left border strip */}
+                      <Box sx={{ position: "absolute", left: 0, top: 0, height: "100%", width: 4, bgcolor: "#672CBC" }} />
+                      
+                      {/* Top Row: Label & Icon */}
+                      <Box display="flex" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
                         <Typography
                           sx={{
-                            fontFamily: "Poppins",
-                            fontSize: "11px",
+                            fontFamily: "Inter, Poppins, sans-serif",
+                            fontSize: "12px",
                             fontWeight: "600",
-                            letterSpacing: "2px",
                             textTransform: "uppercase",
-                            opacity: 0.8,
-                            mb: 2,
+                            letterSpacing: "1.5px",
+                            color: "#8789A3", // Muted label
                           }}
                         >
                           Hadith of the Day
                         </Typography>
+                        <Box 
+                          sx={{ 
+                            bgcolor: "rgba(103, 44, 188, 0.1)", 
+                            width: 36, 
+                            height: 36, 
+                            borderRadius: "8px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}
+                        >
+                          <MenuBookRoundedIcon sx={{ color: "#672CBC", fontSize: "20px" }} />
+                        </Box>
+                      </Box>
+
+                      {/* Hadith Content (Middle and Bottom) */}
+                      <Box sx={{ display: "flex", flexDirection: "column", justifyContent: "center", flexGrow: 1, gap: 2 }}>
                         <Typography
                           sx={{
-                            fontSize: { xs: "20px", sm: "24px" },
-                            fontWeight: "600",
-                            mb: 2,
-                            color: "#DF98FA", // Highlight color
+                            fontFamily: "Poppins, sans-serif",
+                            fontSize: { xs: "20px", sm: "23px" },
+                            fontWeight: "700",
+                            color: "#240F4F", // Deep brand color
                             lineHeight: 1.4,
+                            textAlign: "center"
                           }}
                         >
                           «إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ»
                         </Typography>
                         <Typography
                           sx={{
-                            fontFamily: "Poppins",
-                            fontSize: { xs: "13px", sm: "14.5px" },
+                            fontFamily: "Inter, Poppins, sans-serif",
+                            fontSize: { xs: "13px", sm: "14px" },
                             fontStyle: "italic",
-                            fontWeight: "400",
+                            fontWeight: "500",
+                            color: "#495057", // Dark gray body text
                             lineHeight: 1.6,
-                            opacity: 0.9,
-                            mb: 1.5,
+                            textAlign: "center",
+                            px: 1
                           }}
                         >
                           "Actions are judged by their intentions, and every person will get what they intended."
                         </Typography>
+                      </Box>
+
+                      <Box sx={{ mt: 2, textAlign: "right" }}>
                         <Typography
                           sx={{
-                            fontFamily: "Poppins",
+                            fontFamily: "Inter, Poppins, sans-serif",
                             fontSize: "12px",
                             fontWeight: "600",
-                            opacity: 0.7,
+                            color: "#8789A3", // Muted source text
                           }}
                         >
                           — Sahih al-Bukhari 1
