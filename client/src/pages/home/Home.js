@@ -125,7 +125,6 @@ const NextPrayerCard = () => {
   return (
     <Card
       sx={{
-        
         background: "linear-gradient(135deg, #863ED5 0%, #240F4F 100%)", // Premium deep purple gradient
         color: "#fff",
         borderRadius: "5px",
@@ -134,6 +133,9 @@ const NextPrayerCard = () => {
         overflow: "hidden",
         p: 2.5,
         minHeight: { xs: "auto", md: "205px" },
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between", // Push top and bottom apart
         transition: "transform 0.3s ease, box-shadow 0.3s ease",
         "&:hover": {
           transform: "translateY(-4px)",
@@ -141,16 +143,17 @@ const NextPrayerCard = () => {
         }
       }}
     >
-      <Box display="flex" justifyContent="space-between" alignItems="center">
+      {/* Top Row: Title, Prayer Name & Arabic text */}
+      <Box display="flex" justifyContent="space-between" alignItems="flex-start">
         <Box>
           <Typography
             sx={{
               fontFamily: "Poppins",
-              fontSize: "12px",
+              fontSize: "11px",
               fontWeight: "600",
               textTransform: "uppercase",
               letterSpacing: "1px",
-              opacity: 0.9,
+              opacity: 0.85,
             }}
           >
             Upcoming Prayer
@@ -166,46 +169,47 @@ const NextPrayerCard = () => {
           >
             {nextPrayer.name}
           </Typography>
-          <Typography
-            sx={{
-              fontFamily: "Poppins",
-              fontSize: "14px",
-              fontWeight: "500",
-              opacity: 0.85,
-              mt: 0.5,
-            }}
-          >
-            Starts at {nextPrayer.timeStr}
-          </Typography>
         </Box>
-        <Box textAlign="right">
-          <Typography
-            sx={{
-              fontSize: "28px",
-              fontWeight: "700",
-              fontFamily: "Poppins",
-              color: "#fff",
-              lineHeight: 1,
-            }}
-          >
-            {nextPrayer.arabic}
-          </Typography>
-          <Typography
-            sx={{
-              fontFamily: "Poppins",
-              fontSize: "12px",
-              fontWeight: "600",
-              background: "rgba(255, 255, 255, 0.2)",
-              borderRadius: "20px",
-              px: 1.5,
-              py: 0.5,
-              mt: 1,
-              display: "inline-block",
-            }}
-          >
-            in {timeLeftStr}
-          </Typography>
-        </Box>
+        <Typography
+          sx={{
+            fontSize: "24px",
+            fontWeight: "700",
+            fontFamily: "Poppins",
+            color: "#DF98FA", // Highlighted Arabic text color
+            lineHeight: 1,
+            mt: 0.5,
+          }}
+        >
+          {nextPrayer.arabic}
+        </Typography>
+      </Box>
+
+      {/* Bottom Row: Start time & Countdown */}
+      <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+        <Typography
+          sx={{
+            fontFamily: "Poppins",
+            fontSize: "12.5px",
+            fontWeight: "500",
+            opacity: 0.85,
+          }}
+        >
+          Starts at {nextPrayer.timeStr}
+        </Typography>
+        <Typography
+          sx={{
+            fontFamily: "Poppins",
+            fontSize: "11px",
+            fontWeight: "600",
+            background: "rgba(255, 255, 255, 0.18)",
+            borderRadius: "20px",
+            px: 1.5,
+            py: 0.5,
+            whiteSpace: "nowrap", // Prevent countdown text from wrapping
+          }}
+        >
+          in {timeLeftStr}
+        </Typography>
       </Box>
     </Card>
   );
