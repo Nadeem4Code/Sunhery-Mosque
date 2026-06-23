@@ -237,6 +237,54 @@ const Footer = () => {
           </Typography>
         </ButtonBase>
       </Box>
+
+      {/* Desktop & Scrollable Footer Content */}
+      <Box
+        sx={{
+          py: 4,
+          px: 2,
+          mt: 8,
+          bgcolor: "#ffffff",
+          borderTop: `1px solid ${colors.outlineVariant}`,
+          textAlign: "center",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 0.8,
+          mb: { xs: 8, lg: 0 } // Clear fixed bottom navigation on mobile
+        }}
+      >
+        <Typography
+          sx={{
+            fontFamily: "Poppins, sans-serif",
+            fontSize: "13px",
+            fontWeight: "600",
+            color: "#240F4F"
+          }}
+        >
+          © 2026 Sunheri Mosque. All rights reserved.
+        </Typography>
+        <Typography
+          sx={{
+            fontFamily: "Inter, sans-serif",
+            fontSize: "11px",
+            fontWeight: "500",
+            color: "#8789A3",
+            letterSpacing: "0.5px"
+          }}
+        >
+          Designed & Developed with ❤️ by{" "}
+          <Box
+            component="span"
+            sx={{
+              fontWeight: "700",
+              color: "#240F4F"
+            }}
+          >
+            Mohd Nadeem
+          </Box>
+        </Typography>
+      </Box>
     </Box>
   );
 };
