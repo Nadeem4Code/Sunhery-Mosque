@@ -7,15 +7,12 @@
 
 @keyframes floatAndGlow {
   0% {
-    transform: translateY(0px) rotate(-90deg);
     filter: drop-shadow(0 0 3px rgba(255, 179, 0, 0.4));
   }
   50% {
-    transform: translateY(-3px) rotate(-80deg);
     filter: drop-shadow(0 0 10px rgba(255, 179, 0, 0.8));
   }
   100% {
-    transform: translateY(0px) rotate(-90deg);
     filter: drop-shadow(0 0 3px rgba(255, 179, 0, 0.4));
   }
 }
@@ -23,4 +20,5 @@
 .moon-animated {
   animation: floatAndGlow 4s ease-in-out infinite;
   color: #FFB300 !important;
+  transform: rotate(90deg);
 }
