@@ -25,6 +25,7 @@ import "./Home.css";
 import QuranIcon from "../../components/common/QuranIcon";
 import Brightness3Icon from "@mui/icons-material/Brightness3";
 import MenuBookRoundedIcon from "@mui/icons-material/MenuBookRounded";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import book from "../../assets/icons/book.svg";
 import one from "../../assets/icons/one.svg";
 import two from "../../assets/icons/two.svg";
@@ -1295,43 +1296,65 @@ const Home = () => {
                   <Grid item xs={12} md={6}>
                     <Card
                       sx={{
-                        backgroundColor: "#fff",
-                        color: "#240F4F",
-                        borderRadius: "5px",
-                        boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
+                        bgcolor: "#ffffff", // Pure white like admin dashboard
+                        border: "1px solid rgba(0, 0, 0, 0.08)", // Muted border
+                        borderRadius: "12px", // Matching 12px border radius
+                        boxShadow: "0 15px 20px -15px rgba(103, 44, 188, 0.06)", // Soft purple shadow
+                        position: "relative",
+                        overflow: "hidden",
                         p: 3,
                         height: "100%",
                         minHeight: "260px",
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "space-between",
-                        border: "1px solid rgba(187, 196, 206, 0.35)",
-                        transition: "transform 0.3s ease",
+                        transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease",
                         "&:hover": {
                           transform: "translateY(-4px)",
+                          boxShadow: "0 20px 25px -15px rgba(103, 44, 188, 0.12)",
                         }
                       }}
                     >
+                      {/* Accent left border strip */}
+                      <Box sx={{ position: "absolute", left: 0, top: 0, height: "100%", width: 4, bgcolor: "#672CBC" }} />
+                      
                       <Box>
-                        <Typography
-                          sx={{
-                            fontFamily: "Poppins",
-                            fontSize: "16px",
-                            fontWeight: "600",
-                            color: "#672CBC",
-                            mb: 2,
-                          }}
-                        >
-                          Financial Transparency
-                        </Typography>
+                        {/* Top Row: Label & Icon */}
+                        <Box display="flex" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
+                          <Typography
+                            sx={{
+                              fontFamily: "Inter, Poppins, sans-serif",
+                              fontSize: "12px",
+                              fontWeight: "600",
+                              textTransform: "uppercase",
+                              letterSpacing: "1.5px",
+                              color: "#8789A3", // Muted label
+                            }}
+                          >
+                            Financial Transparency
+                          </Typography>
+                          <Box 
+                            sx={{ 
+                              bgcolor: "rgba(103, 44, 188, 0.1)", 
+                              width: 36, 
+                              height: 36, 
+                              borderRadius: "8px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center"
+                            }}
+                          >
+                            <AccountBalanceWalletIcon sx={{ color: "#672CBC", fontSize: "20px" }} />
+                          </Box>
+                        </Box>
 
                         {/* Mosque Fund Meter */}
-                        <Box sx={{ mb: 2.5 }}>
-                          <Box display="flex" justifyContent="space-between" alignItems="center">
-                            <Typography sx={{ fontFamily: "Poppins", fontSize: "13px", fontWeight: "600", color: "#240F4F" }}>
+                        <Box sx={{ mb: 3 }}>
+                          <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+                            <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "13px", fontWeight: "600", color: "#240F4F" }}>
                               Mosque Fund (Renovations & Bills)
                             </Typography>
-                            <Typography sx={{ fontFamily: "Poppins", fontSize: "12px", fontWeight: "700", color: "#863ED5" }}>
+                            <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12px", fontWeight: "700", color: "#672CBC" }}>
                               {mosquePercent}% Spent
                             </Typography>
                           </Box>
@@ -1341,34 +1364,49 @@ const Home = () => {
                             sx={{
                               height: 8,
                               borderRadius: 4,
-                              backgroundColor: "rgba(144, 85, 255, 0.12)",
+                              backgroundColor: "rgba(103, 44, 188, 0.08)",
                               "& .MuiLinearProgress-bar": {
                                 borderRadius: 4,
-                                background: "linear-gradient(90deg, #DF98FA 0%, #9055FF 100%)",
+                                background: "linear-gradient(90deg, #DF98FA 0%, #672CBC 100%)",
                               },
                               my: 0.8,
                             }}
                           />
-                          <Box display="flex" justifyContent="space-between" opacity={0.8}>
-                            <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "500" }}>
-                              Collected: ₹{totalMosqueReceived.toLocaleString()}
-                            </Typography>
-                            <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "500" }}>
-                              Spent: ₹{MOSQUE_SPENT.toLocaleString()}
-                            </Typography>
-                            <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "600", color: "#672CBC" }}>
-                              Balance: ₹{(totalMosqueReceived - MOSQUE_SPENT).toLocaleString()}
-                            </Typography>
+                          <Box display="flex" justifyContent="space-between" sx={{ mt: 0.5 }}>
+                            <Box>
+                              <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "10px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                Collected
+                              </Typography>
+                              <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12.5px", fontWeight: "700", color: "#240F4F" }}>
+                                ₹{totalMosqueReceived.toLocaleString()}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ textAlign: "center" }}>
+                              <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "10px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                Spent
+                              </Typography>
+                              <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12.5px", fontWeight: "700", color: "#E03131" }}>
+                                ₹{MOSQUE_SPENT.toLocaleString()}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ textAlign: "right" }}>
+                              <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "10px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                Balance
+                              </Typography>
+                              <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12.5px", fontWeight: "700", color: "#0CA678" }}>
+                                ₹{(totalMosqueReceived - MOSQUE_SPENT).toLocaleString()}
+                              </Typography>
+                            </Box>
                           </Box>
                         </Box>
 
                         {/* Imam Fund Meter */}
                         <Box sx={{ mb: 2 }}>
-                          <Box display="flex" justifyContent="space-between" alignItems="center">
-                            <Typography sx={{ fontFamily: "Poppins", fontSize: "13px", fontWeight: "600", color: "#240F4F" }}>
+                          <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+                            <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "13px", fontWeight: "600", color: "#240F4F" }}>
                               Imam & Staff Fund (Salaries & Care)
                             </Typography>
-                            <Typography sx={{ fontFamily: "Poppins", fontSize: "12px", fontWeight: "700", color: "#863ED5" }}>
+                            <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12px", fontWeight: "700", color: "#672CBC" }}>
                               {imamPercent}% Spent
                             </Typography>
                           </Box>
@@ -1378,24 +1416,39 @@ const Home = () => {
                             sx={{
                               height: 8,
                               borderRadius: 4,
-                              backgroundColor: "rgba(144, 85, 255, 0.12)",
+                              backgroundColor: "rgba(103, 44, 188, 0.08)",
                               "& .MuiLinearProgress-bar": {
                                 borderRadius: 4,
-                                background: "linear-gradient(90deg, #DF98FA 0%, #9055FF 100%)",
+                                background: "linear-gradient(90deg, #DF98FA 0%, #672CBC 100%)",
                               },
                               my: 0.8,
                             }}
                           />
-                          <Box display="flex" justifyContent="space-between" opacity={0.8}>
-                            <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "500" }}>
-                              Collected: ₹{totalImamReceived.toLocaleString()}
-                            </Typography>
-                            <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "500" }}>
-                              Spent: ₹{IMAM_SPENT.toLocaleString()}
-                            </Typography>
-                            <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "600", color: "#672CBC" }}>
-                              Balance: ₹{(totalImamReceived - IMAM_SPENT).toLocaleString()}
-                            </Typography>
+                          <Box display="flex" justifyContent="space-between" sx={{ mt: 0.5 }}>
+                            <Box>
+                              <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "10px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                Collected
+                              </Typography>
+                              <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12.5px", fontWeight: "700", color: "#240F4F" }}>
+                                ₹{totalImamReceived.toLocaleString()}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ textAlign: "center" }}>
+                              <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "10px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                Spent
+                              </Typography>
+                              <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12.5px", fontWeight: "700", color: "#E03131" }}>
+                                ₹{IMAM_SPENT.toLocaleString()}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ textAlign: "right" }}>
+                              <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "10px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                Balance
+                              </Typography>
+                              <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12.5px", fontWeight: "700", color: "#0CA678" }}>
+                                ₹{(totalImamReceived - IMAM_SPENT).toLocaleString()}
+                              </Typography>
+                            </Box>
                           </Box>
                         </Box>
                       </Box>
@@ -1405,16 +1458,19 @@ const Home = () => {
                         variant="contained"
                         fullWidth
                         sx={{
-                          background: "linear-gradient(135deg, #DF98FA 0%, #9055FF 100%)",
+                          background: "linear-gradient(135deg, #863ED5 0%, #672CBC 100%)",
                           color: "#fff",
-                          fontFamily: "Poppins",
+                          fontFamily: "Poppins, sans-serif",
                           fontWeight: "600",
                           textTransform: "none",
                           fontSize: "13px",
-                          boxShadow: "none",
+                          borderRadius: "8px",
+                          boxShadow: "0 4px 10px rgba(103, 44, 188, 0.15)",
+                          py: 1,
+                          mt: 2,
                           "&:hover": {
-                            background: "linear-gradient(135deg, #9055FF 0%, #DF98FA 100%)",
-                            boxShadow: "none",
+                            background: "linear-gradient(135deg, #672CBC 0%, #240F4F 100%)",
+                            boxShadow: "0 6px 15px rgba(103, 44, 188, 0.25)",
                           }
                         }}
                       >
@@ -1438,8 +1494,8 @@ const Home = () => {
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: "8px",
-            fontFamily: "Poppins",
+            borderRadius: "12px",
+            fontFamily: "Poppins, sans-serif",
           }
         }}
       >
