@@ -351,6 +351,83 @@ const NextPrayerCard = () => {
   );
 };
 
+const getHijriDateAlgorithmic = (date, offset = 0) => {
+  const adjustedDate = new Date(date);
+  adjustedDate.setDate(adjustedDate.getDate() + offset);
+
+  let gYear = adjustedDate.getFullYear();
+  let gMonth = adjustedDate.getMonth();
+  let gDay = adjustedDate.getDate();
+
+  let jd;
+  if (gMonth < 2) {
+    gYear -= 1;
+    gMonth += 12;
+  }
+  let a = Math.floor(gYear / 100);
+  let b = 2 - a + Math.floor(a / 4);
+  jd = Math.floor(365.25 * (gYear + 4716)) + Math.floor(30.6001 * (gMonth + 2)) + gDay + b - 1524.5;
+
+  let epoch = 1948439.5;
+  let shift = jd - epoch;
+  let cycle = Math.floor(shift / 10631);
+  let cycleRemain = shift % 10631;
+  
+  let hYear = 30 * cycle + 1;
+  
+  const isLeapYear = (y) => {
+    const leapYears = [2, 5, 7, 10, 13, 16, 18, 21, 24, 26, 29];
+    return leapYears.includes((y - 1) % 30 + 1);
+  };
+
+  let days = cycleRemain;
+  for (let y = 1; y <= 30; y++) {
+    let yearLen = isLeapYear(hYear) ? 355 : 354;
+    if (days < yearLen) {
+      break;
+    }
+    days -= yearLen;
+    hYear++;
+  }
+
+  let hMonth = 0;
+  let monthDays = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, (isLeapYear(hYear) ? 30 : 29)];
+  
+  for (let m = 0; m < 12; m++) {
+    if (days < monthDays[m]) {
+      hMonth = m;
+      break;
+    }
+    days -= monthDays[m];
+  }
+  
+  let hDay = Math.floor(days) + 1;
+  
+  const islamicMonths = [
+    "Muharram", "Safar", "Rabi' al-Awwal", "Rabi' al-Thani",
+    "Jumada al-Awwal", "Jumada al-Thani", "Rajab", "Sha'ban",
+    "Ramadan", "Shawwal", "Dhu al-Qadah", "Dhu al-Hijjah"
+  ];
+  
+  const islamicMonthsAr = [
+    "المحرّم", "صفر", "ربيع الأول", "ربيع الآخر",
+    "جمادى الأولى", "جمادى الآخرة", "رجب", "شعبان",
+    "رمضان", "شوّال", "ذو القعدة", "ذو الحجة"
+  ];
+
+  return {
+    day: hDay,
+    month: islamicMonths[hMonth],
+    monthAr: islamicMonthsAr[hMonth],
+    year: hYear
+  };
+};
+
+const toArabicDigits = (num) => {
+  const arabicDigits = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+  return String(num).replace(/[0-9]/g, (w) => arabicDigits[+w]);
+};
+
 const IslamicDateCard = () => {
   const [hijriDate, setHijriDate] = useState("");
   const [hijriDateAr, setHijriDateAr] = useState("");
@@ -359,43 +436,12 @@ const IslamicDateCard = () => {
   React.useEffect(() => {
     const today = new Date();
     
-    // Configurable offset in days (for moonsighting adjustments)
-    const hijriOffset = -1; 
-    const adjustedDate = new Date(today);
-    adjustedDate.setDate(today.getDate() + hijriOffset);
-
-    // Format English Hijri
-    try {
-      const parts = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      }).formatToParts(adjustedDate);
-      
-      let day = '';
-      let month = '';
-      let year = '';
-      parts.forEach(p => {
-        if (p.type === 'day') day = p.value;
-        if (p.type === 'month') month = p.value;
-        if (p.type === 'year') year = p.value;
-      });
-      setHijriDate(`${day} ${month} ${year} AH`);
-    } catch (e) {
-      setHijriDate("Islamic Calendar");
-    }
-
-    // Format Arabic Hijri
-    try {
-      const formattedAr = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      }).format(adjustedDate);
-      setHijriDateAr(formattedAr);
-    } catch (e) {
-      setHijriDateAr("");
-    }
+    // Moonsighting adjustment offset
+    const hijriOffset = 1; 
+    
+    const hDate = getHijriDateAlgorithmic(today, hijriOffset);
+    setHijriDate(`${hDate.day} ${hDate.month} ${hDate.year} AH`);
+    setHijriDateAr(`${toArabicDigits(hDate.day)} ${hDate.monthAr} ${toArabicDigits(hDate.year)} هـ`);
 
     // Format Gregorian
     const gregOptions = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
