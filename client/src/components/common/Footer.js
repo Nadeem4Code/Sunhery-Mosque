@@ -17,18 +17,18 @@ import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
 const colors = {
-  primary: "#003535",
+  primary: "#672CBC",
   onPrimary: "#ffffff",
-  primaryContainer: "#0d4d4d",
+  primaryContainer: "#240F4F",
   background: "#f8f9ff",
-  onSurfaceVariant: "#404848",
-  outlineVariant: "#bfc8c8",
+  onSurfaceVariant: "#8789A3",
+  outlineVariant: "#e9ecef",
 };
 
 const typography = {
   labelSm: {
     fontFamily: "Inter, sans-serif",
-    fontSize: "12px",
+    fontSize: "10px",
     fontWeight: 600,
     lineHeight: "16px"
   }
@@ -86,9 +86,10 @@ const Footer = () => {
           bgcolor: "#ffffff",
           borderTop: `1px solid ${colors.outlineVariant}`,
           alignItems: "center",
-          justifyContent: "space-around",
-          px: 2,
-          zIndex: 1100
+          justifyContent: "space-between",
+          px: 1,
+          zIndex: 1100,
+          boxShadow: "0 -2px 10px rgba(103, 44, 188, 0.03)"
         }}
       >
         {/* Home Tab */}
@@ -99,13 +100,26 @@ const Footer = () => {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            color: isHomeActive ? colors.primary : colors.onSurfaceVariant,
-            width: 60,
+            flex: 1,
             py: 0.5
           }}
         >
-          <DashboardRoundedIcon sx={{ fontSize: "24px" }} />
-          <Typography sx={{ ...typography.labelSm, fontSize: "8px", fontWeight: "700", textTransform: "uppercase", mt: 0.5 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              bgcolor: isHomeActive ? "rgba(103, 44, 188, 0.08)" : "transparent",
+              borderRadius: "16px",
+              width: "48px",
+              height: "32px",
+              mb: "4px",
+              transition: "background-color 0.2s ease"
+            }}
+          >
+            <DashboardRoundedIcon sx={{ fontSize: "22px", color: isHomeActive ? "#672CBC" : "#8789A3" }} />
+          </Box>
+          <Typography sx={{ ...typography.labelSm, fontSize: "8.5px", fontWeight: "700", textTransform: "uppercase", color: isHomeActive ? "#672CBC" : "#8789A3" }}>
             Home
           </Typography>
         </ButtonBase>
@@ -118,19 +132,32 @@ const Footer = () => {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            color: isFinanceActive ? colors.primary : colors.onSurfaceVariant,
-            width: 60,
+            flex: 1,
             py: 0.5
           }}
         >
-          <PaymentsRoundedIcon sx={{ fontSize: "24px" }} />
-          <Typography sx={{ ...typography.labelSm, fontSize: "8px", fontWeight: "700", textTransform: "uppercase", mt: 0.5 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              bgcolor: isFinanceActive ? "rgba(103, 44, 188, 0.08)" : "transparent",
+              borderRadius: "16px",
+              width: "48px",
+              height: "32px",
+              mb: "4px",
+              transition: "background-color 0.2s ease"
+            }}
+          >
+            <PaymentsRoundedIcon sx={{ fontSize: "22px", color: isFinanceActive ? "#672CBC" : "#8789A3" }} />
+          </Box>
+          <Typography sx={{ ...typography.labelSm, fontSize: "8.5px", fontWeight: "700", textTransform: "uppercase", color: isFinanceActive ? "#672CBC" : "#8789A3" }}>
             Finance
           </Typography>
         </ButtonBase>
 
         {/* Floating Center Action Button (quick shortcut to donate) */}
-        <Box sx={{ position: "relative", top: -16, p: "4px", bgcolor: colors.background, borderRadius: "50%" }}>
+        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", width: 64, position: "relative", top: -16, p: "4px", bgcolor: colors.background, borderRadius: "50%" }}>
           <IconButton 
             onClick={() => navigate("/donation")}
             sx={{ 
@@ -138,7 +165,7 @@ const Footer = () => {
               height: 48, 
               bgcolor: colors.primary, 
               color: "white", 
-              boxShadow: "0 10px 15px -3px rgba(0, 53, 53, 0.3)",
+              boxShadow: "0 4px 10px rgba(103, 44, 188, 0.2)",
               border: `4px solid ${colors.background}`,
               "&:hover": { bgcolor: colors.primaryContainer }
             }}
@@ -155,13 +182,25 @@ const Footer = () => {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            color: colors.onSurfaceVariant,
-            width: 60,
+            flex: 1,
             py: 0.5
           }}
         >
-          <ScheduleRoundedIcon sx={{ fontSize: "24px" }} />
-          <Typography sx={{ ...typography.labelSm, fontSize: "8px", fontWeight: "700", textTransform: "uppercase", mt: 0.5 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              bgcolor: "transparent",
+              borderRadius: "16px",
+              width: "48px",
+              height: "32px",
+              mb: "4px",
+            }}
+          >
+            <ScheduleRoundedIcon sx={{ fontSize: "22px", color: "#8789A3" }} />
+          </Box>
+          <Typography sx={{ ...typography.labelSm, fontSize: "8.5px", fontWeight: "700", textTransform: "uppercase", color: "#8789A3" }}>
             Prayers
           </Typography>
         </ButtonBase>
@@ -174,13 +213,26 @@ const Footer = () => {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            color: isProfileActive ? colors.primary : colors.onSurfaceVariant,
-            width: 60,
+            flex: 1,
             py: 0.5
           }}
         >
-          <PersonRoundedIcon sx={{ fontSize: "24px" }} />
-          <Typography sx={{ ...typography.labelSm, fontSize: "8px", fontWeight: "700", textTransform: "uppercase", mt: 0.5 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              bgcolor: isProfileActive ? "rgba(103, 44, 188, 0.08)" : "transparent",
+              borderRadius: "16px",
+              width: "48px",
+              height: "32px",
+              mb: "4px",
+              transition: "background-color 0.2s ease"
+            }}
+          >
+            <PersonRoundedIcon sx={{ fontSize: "22px", color: isProfileActive ? "#672CBC" : "#8789A3" }} />
+          </Box>
+          <Typography sx={{ ...typography.labelSm, fontSize: "8.5px", fontWeight: "700", textTransform: "uppercase", color: isProfileActive ? "#672CBC" : "#8789A3" }}>
             Profile
           </Typography>
         </ButtonBase>

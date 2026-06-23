@@ -44,6 +44,7 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import LinearProgress from "@mui/material/LinearProgress";
+import CircularProgress from "@mui/material/CircularProgress";
 import Button from "@mui/material/Button";
 
 // Dialog & Table Imports
@@ -61,9 +62,80 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 
+const CircularProgressWithLabel = ({ value, colorCode, statusText }) => {
+  return (
+    <Box sx={{ position: "relative", display: "inline-flex" }}>
+      <CircularProgress
+        variant="determinate"
+        value={100}
+        size={80}
+        thickness={5}
+        sx={{ color: "rgba(103, 44, 188, 0.06)" }}
+      />
+      <CircularProgress
+        variant="determinate"
+        value={value}
+        size={80}
+        thickness={5}
+        sx={{
+          color: colorCode,
+          position: "absolute",
+          left: 0,
+          "& .MuiCircularProgress-circle": {
+            strokeLinecap: "round",
+          },
+        }}
+      />
+      <Box
+        sx={{
+          top: 0,
+          left: 0,
+          bottom: 0,
+          right: 0,
+          position: "absolute",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Typography
+          variant="caption"
+          component="div"
+          sx={{
+            fontFamily: "Poppins, sans-serif",
+            fontWeight: "700",
+            fontSize: "14px",
+            color: "#240F4F",
+            lineHeight: 1,
+          }}
+        >
+          {`${Math.round(value)}%`}
+        </Typography>
+        <Typography
+          variant="caption"
+          component="div"
+          sx={{
+            fontFamily: "Inter, sans-serif",
+            fontWeight: "700",
+            fontSize: "7px",
+            textTransform: "uppercase",
+            color: colorCode,
+            mt: 0.3,
+            lineHeight: 1,
+          }}
+        >
+          {statusText}
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
+
 const NextPrayerCard = () => {
   const [nextPrayer, setNextPrayer] = React.useState(null);
   const [timeLeftStr, setTimeLeftStr] = React.useState("");
+  const [percent, setPercent] = React.useState(0);
 
   React.useEffect(() => {
     const updateCountdown = () => {
@@ -82,12 +154,14 @@ const NextPrayerCard = () => {
       ];
 
       // Find the next prayer
+      let nextIndex = 0;
       let next = null;
       let diffInSeconds = 0;
 
       for (let i = 0; i < prayers.length; i++) {
         if (prayers[i].timeInSeconds > currentTimeInSeconds) {
           next = prayers[i];
+          nextIndex = i;
           diffInSeconds = prayers[i].timeInSeconds - currentTimeInSeconds;
           break;
         }
@@ -96,7 +170,7 @@ const NextPrayerCard = () => {
       if (!next) {
         // Next is Fajar of tomorrow
         next = prayers[0];
-        // Time left = remaining seconds of today + Fajar time tomorrow
+        nextIndex = 0;
         diffInSeconds = (24 * 3600 - currentTimeInSeconds) + prayers[0].timeInSeconds;
       }
 
@@ -113,8 +187,36 @@ const NextPrayerCard = () => {
       }
       timeLeft += `${seconds}s`;
 
+      // Previous prayer
+      const prevIndex = nextIndex === 0 ? prayers.length - 1 : nextIndex - 1;
+      const prev = prayers[prevIndex];
+
+      let totalSecondsBetween = 0;
+      let elapsedSeconds = 0;
+
+      if (nextIndex === 0) {
+        const ishaSec = prayers[prayers.length - 1].timeInSeconds;
+        const fajarSec = prayers[0].timeInSeconds;
+        totalSecondsBetween = (24 * 3600 - ishaSec) + fajarSec;
+        if (currentTimeInSeconds >= ishaSec) {
+          elapsedSeconds = currentTimeInSeconds - ishaSec;
+        } else {
+          elapsedSeconds = (24 * 3600 - ishaSec) + currentTimeInSeconds;
+        }
+      } else {
+        const prevSec = prev.timeInSeconds;
+        const nextSec = next.timeInSeconds;
+        totalSecondsBetween = nextSec - prevSec;
+        elapsedSeconds = currentTimeInSeconds - prevSec;
+      }
+
+      const progressPercent = totalSecondsBetween > 0 
+        ? Math.min(Math.round((elapsedSeconds / totalSecondsBetween) * 100), 100)
+        : 0;
+
       setNextPrayer(next);
       setTimeLeftStr(timeLeft);
+      setPercent(progressPercent);
     };
 
     updateCountdown();
@@ -129,19 +231,21 @@ const NextPrayerCard = () => {
       sx={{
         background: "linear-gradient(135deg, #863ED5 0%, #240F4F 100%)", // Premium deep purple gradient
         color: "#fff",
-        borderRadius: "5px",
-        boxShadow: "0 8px 32px 0 rgba(134, 62, 213, 0.2)",
+        borderRadius: "12px", // Matching 12px border radius
+        boxShadow: "0 15px 20px -15px rgba(103, 44, 188, 0.2)", // Soft shadow
         position: "relative",
         overflow: "hidden",
-        p: 2.5,
-        minHeight: { xs: "auto", md: "205px" },
+        p: 3, // Unified 24px padding
+        height: "100%",
+        minHeight: "205px",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "space-between", // Push top and bottom apart
-        transition: "transform 0.3s ease, box-shadow 0.3s ease",
+        justifyContent: "space-between",
+        border: "1px solid rgba(255, 255, 255, 0.1)",
+        transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease",
         "&:hover": {
           transform: "translateY(-4px)",
-          boxShadow: "0 12px 40px 0 rgba(134, 62, 213, 0.35)",
+          boxShadow: "0 20px 25px -15px rgba(103, 44, 188, 0.3)",
         }
       }}
     >
@@ -150,19 +254,19 @@ const NextPrayerCard = () => {
         <Box>
           <Typography
             sx={{
-              fontFamily: "Poppins",
+              fontFamily: "Inter, sans-serif",
               fontSize: "11px",
               fontWeight: "600",
               textTransform: "uppercase",
               letterSpacing: "1px",
-              opacity: 0.85,
+              color: "rgba(255, 255, 255, 0.75)",
             }}
           >
             Upcoming Prayer
           </Typography>
           <Typography
             sx={{
-              fontFamily: "Poppins",
+              fontFamily: "Poppins, sans-serif",
               fontSize: "24px",
               fontWeight: "700",
               mt: 0.5,
@@ -176,7 +280,7 @@ const NextPrayerCard = () => {
           sx={{
             fontSize: "24px",
             fontWeight: "700",
-            fontFamily: "Poppins",
+            fontFamily: "Poppins, sans-serif",
             color: "#DF98FA", // Highlighted Arabic text color
             lineHeight: 1,
             mt: 0.5,
@@ -186,31 +290,63 @@ const NextPrayerCard = () => {
         </Typography>
       </Box>
 
-      {/* Bottom Row: Start time & Countdown */}
-      <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+      {/* Countdown Timer - Larger and More Prominent */}
+      <Box sx={{ my: 1 }}>
         <Typography
           sx={{
-            fontFamily: "Poppins",
-            fontSize: "12.5px",
+            fontFamily: "Hanken Grotesk, Poppins, sans-serif",
+            fontSize: "32px",
+            fontWeight: "800",
+            textAlign: "center",
+            color: "#ffffff",
+            letterSpacing: "0.5px",
+            lineHeight: 1.2
+          }}
+        >
+          {timeLeftStr}
+        </Typography>
+        
+        {/* Progress Bar Showing Time Until Next Prayer */}
+        <LinearProgress
+          variant="determinate"
+          value={percent}
+          sx={{
+            height: 6,
+            borderRadius: 3,
+            backgroundColor: "rgba(255, 255, 255, 0.12)",
+            "& .MuiLinearProgress-bar": {
+              borderRadius: 3,
+              background: "linear-gradient(90deg, #DF98FA 0%, #9055FF 100%)",
+            },
+            mt: 1.5,
+            mb: 0.5,
+          }}
+        />
+      </Box>
+
+      {/* Bottom Row: Start time */}
+      <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Typography
+          sx={{
+            fontFamily: "Inter, sans-serif",
+            fontSize: "12px",
             fontWeight: "500",
-            opacity: 0.85,
+            color: "rgba(255, 255, 255, 0.75)",
           }}
         >
           Starts at {nextPrayer.timeStr}
         </Typography>
         <Typography
           sx={{
-            fontFamily: "Poppins",
-            fontSize: "11px",
+            fontFamily: "Inter, sans-serif",
+            fontSize: "10px",
             fontWeight: "600",
-            background: "rgba(255, 255, 255, 0.18)",
-            borderRadius: "20px",
-            px: 1.5,
-            py: 0.5,
-            whiteSpace: "nowrap", // Prevent countdown text from wrapping
+            textTransform: "uppercase",
+            letterSpacing: "0.5px",
+            color: "#DF98FA",
           }}
         >
-          in {timeLeftStr}
+          in progress
         </Typography>
       </Box>
     </Card>
@@ -369,6 +505,41 @@ const Home = () => {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [expenditures, setExpenditures] = useState([]);
+  const [activePrayerName, setActivePrayerName] = useState("");
+
+  React.useEffect(() => {
+    const getActivePrayerName = () => {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      const currentTimeInSeconds = currentHour * 3600 + currentMinute * 60;
+
+      const prayers = [
+        { name: "Fajar", timeInSeconds: (5 * 60 + 40) * 60 },
+        { name: "Zohar", timeInSeconds: (13 * 60 + 30) * 60 },
+        { name: "Asar", timeInSeconds: (17 * 60 + 30) * 60 },
+        { name: "Maghrib", timeInSeconds: (19 * 60 + 10) * 60 },
+        { name: "Isha", timeInSeconds: (20 * 60 + 30) * 60 },
+      ];
+
+      if (currentTimeInSeconds >= prayers[4].timeInSeconds || currentTimeInSeconds < prayers[0].timeInSeconds) {
+        return "Isha";
+      }
+      for (let i = 0; i < prayers.length - 1; i++) {
+        if (currentTimeInSeconds >= prayers[i].timeInSeconds && currentTimeInSeconds < prayers[i + 1].timeInSeconds) {
+          return prayers[i].name;
+        }
+      }
+      return "";
+    };
+
+    const checkActive = () => {
+      setActivePrayerName(getActivePrayerName());
+    };
+    checkActive();
+    const interval = setInterval(checkActive, 30000); // Check every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   React.useEffect(() => {
     axios.get("http://localhost:3001/expenditures")
@@ -594,598 +765,237 @@ const Home = () => {
                       <Grid item xs={12} sm={6}>
                         <IslamicDateCard />
                       </Grid>
-                      
                     </Grid>
                   </Grid>
-                  {/*Five Times Namaz*/}
+                  {/*Five Times Namaz & Other Namaz Row */}
                   <Grid item xs={12} md={6}>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} md={6}>
-                        <Card>
-                          <CardContent>
-                            <Box>
-                              <nav>
-                                <List
-                                  subheader={
-                                    <ListSubheader
-                                      style={{
-                                        fontFamily: "Poppins",
-                                        fontStyle: "normal",
-                                        fontWeight: "600",
-                                        fontSize: "16px",
-                                        lineHeight: "24px",
-                                        color: " #672CBC",
+                    <Grid container spacing={2} sx={{ height: "100%" }}>
+                      {/* Five Times Namaz */}
+                      <Grid item xs={12} sm={6} sx={{ display: "flex" }}>
+                        <Card
+                          sx={{
+                            width: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "space-between",
+                            bgcolor: "#ffffff",
+                            border: "1px solid rgba(0, 0, 0, 0.08)",
+                            borderRadius: "12px",
+                            boxShadow: "0 15px 20px -15px rgba(103, 44, 188, 0.06)",
+                            p: 3,
+                            transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease",
+                            "&:hover": {
+                              transform: "translateY(-4px)",
+                              boxShadow: "0 20px 25px -15px rgba(103, 44, 188, 0.12)",
+                            }
+                          }}
+                        >
+                          <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
+                            <Typography
+                              sx={{
+                                fontFamily: "Poppins, sans-serif",
+                                fontWeight: "700",
+                                fontSize: "16px",
+                                color: "#672CBC",
+                                mb: 1,
+                              }}
+                            >
+                              Five Times Namaz
+                            </Typography>
+                            <Divider sx={{ borderColor: "rgba(103, 44, 188, 0.15)", mb: 2 }} />
+                            <List disablePadding>
+                              {[
+                                { name: "Fajar", time: "5:40 AM", arabic: "فجر", icon: one },
+                                { name: "Zohar", time: "1:30 PM", arabic: "زوهر", icon: two },
+                                { name: "Asar", time: "5:30 PM", arabic: "اثر", icon: three },
+                                { name: "Maghrib", time: "7:10 PM", arabic: "مغرب", icon: four },
+                                { name: "Isha", time: "8:30 PM", arabic: "عشا", icon: five },
+                              ].map((prayer, index) => {
+                                const isActive = activePrayerName === prayer.name;
+                                return (
+                                  <React.Fragment key={prayer.name}>
+                                    {index > 0 && <Divider sx={{ borderColor: "rgba(0,0,0,0.05)", my: 0.8 }} />}
+                                    <ListItem
+                                      disablePadding
+                                      className={isActive ? "active-prayer-highlight" : ""}
+                                      sx={{
+                                        py: 1,
+                                        px: 1.5,
+                                        borderRadius: "8px",
+                                        transition: "all 0.2s ease",
+                                        border: isActive ? "1px solid #672CBC" : "1px solid transparent",
+                                        background: isActive ? "rgba(103, 44, 188, 0.03)" : "transparent",
                                       }}
-                                      component="div"
                                     >
-                                      Five Times Namaz
-                                    </ListSubheader>
-                                  }
-                                >
-                                  {/*Fajar*/}
-                                  <Divider
-                                    style={{
-                                      width: "100%", // Set width to 100%
-                                      border: "1px solid #672CBC",
-                                      margin: "10px 0", // Adjust margin
-                                    }}
-                                  />
-                                  <ListItem disablePadding>
-                                    <ListItemIcon
-                                      style={{ marginLeft: "15px" }}
-                                    >
-                                      <img
-                                        src={one}
-                                        alt="one"
-                                        style={{
-                                          height: "36px",
-                                          width: "36px",
-                                        }}
-                                      />
-                                    </ListItemIcon>
-                                    <ListItemText>
-                                      <Stack direction="column">
-                                        <Typography
+                                      <ListItemIcon sx={{ minWidth: 46 }}>
+                                        <img
+                                          src={prayer.icon}
+                                          alt={prayer.name}
                                           style={{
-                                            fontFamily: "Poppins",
+                                            height: "36px",
+                                            width: "36px",
+                                          }}
+                                        />
+                                      </ListItemIcon>
+                                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                                        <Stack direction="column">
+                                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                            <Typography
+                                              sx={{
+                                                fontFamily: "Poppins, sans-serif",
+                                                fontWeight: "600",
+                                                fontSize: "15px",
+                                                color: "#240F4F",
+                                              }}
+                                            >
+                                              {prayer.name}
+                                            </Typography>
+                                            {isActive && (
+                                              <Box
+                                                className="glowing-dot"
+                                                sx={{
+                                                  width: 8,
+                                                  height: 8,
+                                                }}
+                                              />
+                                            )}
+                                          </Box>
+                                          <Typography
+                                            sx={{
+                                              fontFamily: "Inter, sans-serif",
+                                              fontWeight: "500",
+                                              fontSize: "11px",
+                                              textTransform: "uppercase",
+                                              color: "#8789A3",
+                                            }}
+                                          >
+                                            Time : {prayer.time}
+                                          </Typography>
+                                        </Stack>
+                                        <Typography
+                                          sx={{
                                             fontStyle: "normal",
-                                            fontweight: "500",
-                                            fontSize: "16px",
-
-                                            color: "#240F4F",
+                                            fontWeight: "700",
+                                            fontSize: "18px",
+                                            color: "#863ED5",
+                                            fontFamily: "Poppins, sans-serif",
                                           }}
                                         >
-                                          Fajar
+                                          {prayer.arabic}
                                         </Typography>
-                                        <Typography
-                                          style={{
-                                            fontFamily: "Poppins",
-                                            fontStyle: "normal",
-                                            fontWeight: "500",
-                                            fontSize: "12px",
-
-                                            /* identical to box height */
-                                            textTransform: "uppercase",
-                                            color: "#8789A3",
-                                          }}
-                                        >
-                                          Time : 5.40 AM
-                                        </Typography>
-                                      </Stack>
-                                      <Typography
-                                        style={{
-                                          fontStyle: "normal",
-                                          fontWeight: "700",
-                                          fontSize: "20px",
-                                          color: "#863ED5",
-                                          position: "absolute",
-                                          right: 14,
-                                          top: 6,
-                                        }}
-                                      >
-                                        فجر
-                                      </Typography>
-                                    </ListItemText>
-                                  </ListItem>
-                                  {/*Zohar*/}
-                                  <Divider
-                                    style={{
-                                      width: "100%",
-                                      marginTop: "5px",
-                                      marginBottom: "5px",
-                                      border:
-                                        "1px solid rgba(187, 196, 206, 0.35)",
-                                    }}
-                                  />
-                                  <ListItem disablePadding>
-                                    <ListItemIcon
-                                      style={{ marginLeft: "15px" }}
-                                    >
-                                      <img
-                                        src={two}
-                                        alt="one"
-                                        style={{
-                                          height: "36px",
-                                          width: "36px",
-                                        }}
-                                      />
-                                    </ListItemIcon>
-                                    <ListItemText>
-                                      <Stack direction="column">
-                                        <Typography
-                                          style={{
-                                            fontFamily: "Poppins",
-                                            fontStyle: "normal",
-                                            fontweight: "500",
-                                            fontSize: "16px",
-
-                                            color: "#240F4F",
-                                          }}
-                                        >
-                                          Zohar
-                                        </Typography>
-                                        <Typography
-                                          style={{
-                                            fontFamily: "Poppins",
-                                            fontStyle: "normal",
-                                            fontWeight: "500",
-                                            fontSize: "12px",
-
-                                            /* identical to box height */
-                                            textTransform: "uppercase",
-                                            color: "#8789A3",
-                                          }}
-                                        >
-                                          Time : 1.30 PM
-                                        </Typography>
-                                      </Stack>
-                                      <Typography
-                                        style={{
-                                          fontStyle: "normal",
-                                          fontWeight: "700",
-                                          fontSize: "20px",
-                                          color: "#863ED5",
-                                          position: "absolute",
-                                          right: 14,
-                                          top: 6,
-                                        }}
-                                      >
-                                        زوہر
-                                      </Typography>
-                                    </ListItemText>
-                                  </ListItem>
-                                  {/*Asar*/}
-                                  <Divider
-                                    style={{
-                                      width: "100%",
-                                      marginTop: "5px",
-                                      marginBottom: "5px",
-                                      border:
-                                        "1px solid rgba(187, 196, 206, 0.35)",
-                                    }}
-                                  />
-                                  <ListItem disablePadding>
-                                    <ListItemIcon
-                                      style={{ marginLeft: "15px" }}
-                                    >
-                                      <img
-                                        src={three}
-                                        alt="one"
-                                        style={{
-                                          height: "36px",
-                                          width: "36px",
-                                        }}
-                                      />
-                                    </ListItemIcon>
-                                    <ListItemText>
-                                      <Stack direction="column">
-                                        <Typography
-                                          style={{
-                                            fontFamily: "Poppins",
-                                            fontStyle: "normal",
-                                            fontweight: "500",
-                                            fontSize: "16px",
-
-                                            color: "#240F4F",
-                                          }}
-                                        >
-                                          Asar
-                                        </Typography>
-                                        <Typography
-                                          style={{
-                                            fontFamily: "Poppins",
-                                            fontStyle: "normal",
-                                            fontWeight: "500",
-                                            fontSize: "12px",
-
-                                            /* identical to box height */
-                                            textTransform: "uppercase",
-                                            color: "#8789A3",
-                                          }}
-                                        >
-                                          Time : 5.30 PM
-                                        </Typography>
-                                      </Stack>
-                                      <Typography
-                                        style={{
-                                          fontStyle: "normal",
-                                          fontWeight: "700",
-                                          fontSize: "20px",
-                                          color: "#863ED5",
-                                          position: "absolute",
-                                          right: 14,
-                                          top: 6,
-                                        }}
-                                      >
-                                        اثر
-                                      </Typography>
-                                    </ListItemText>
-                                  </ListItem>
-                                  {/*Maghrib*/}
-                                  <Divider
-                                    style={{
-                                      width: "100%",
-                                      marginTop: "5px",
-                                      marginBottom: "5px",
-                                      border:
-                                        "1px solid rgba(187, 196, 206, 0.35)",
-                                    }}
-                                  />
-                                  <ListItem disablePadding>
-                                    <ListItemIcon
-                                      style={{ marginLeft: "15px" }}
-                                    >
-                                      <img
-                                        src={four}
-                                        alt="one"
-                                        style={{
-                                          height: "36px",
-                                          width: "36px",
-                                        }}
-                                      />
-                                    </ListItemIcon>
-                                    <ListItemText>
-                                      <Stack direction="column">
-                                        <Typography
-                                          style={{
-                                            fontFamily: "Poppins",
-                                            fontStyle: "normal",
-                                            fontweight: "500",
-                                            fontSize: "16px",
-
-                                            color: "#240F4F",
-                                          }}
-                                        >
-                                          Maghrib
-                                        </Typography>
-                                        <Typography
-                                          style={{
-                                            fontFamily: "Poppins",
-                                            fontStyle: "normal",
-                                            fontWeight: "500",
-                                            fontSize: "12px",
-
-                                            /* identical to box height */
-                                            textTransform: "uppercase",
-                                            color: "#8789A3",
-                                          }}
-                                        >
-                                          Time : 7.10 PM
-                                        </Typography>
-                                      </Stack>
-                                      <Typography
-                                        style={{
-                                          fontStyle: "normal",
-                                          fontWeight: "700",
-                                          fontSize: "20px",
-                                          color: "#863ED5",
-                                          position: "absolute",
-                                          right: 14,
-                                          top: 6,
-                                        }}
-                                      >
-                                        مغرب
-                                      </Typography>
-                                    </ListItemText>
-                                  </ListItem>
-                                  {/*Isha*/}
-                                  <Divider
-                                    style={{
-                                      width: "100%",
-                                      marginTop: "5px",
-                                      marginBottom: "5px",
-                                      border:
-                                        "1px solid rgba(187, 196, 206, 0.35)",
-                                    }}
-                                  />
-                                  <ListItem disablePadding>
-                                    <ListItemIcon
-                                      style={{ marginLeft: "15px" }}
-                                    >
-                                      <img
-                                        src={five}
-                                        alt="one"
-                                        style={{
-                                          height: "36px",
-                                          width: "36px",
-                                        }}
-                                      />
-                                    </ListItemIcon>
-                                    <ListItemText>
-                                      <Stack direction="column">
-                                        <Typography
-                                          style={{
-                                            fontFamily: "Poppins",
-                                            fontStyle: "normal",
-                                            fontweight: "500",
-                                            fontSize: "16px",
-
-                                            color: "#240F4F",
-                                          }}
-                                        >
-                                          Isha
-                                        </Typography>
-                                        <Typography
-                                          style={{
-                                            fontFamily: "Poppins",
-                                            fontStyle: "normal",
-                                            fontWeight: "500",
-                                            fontSize: "12px",
-
-                                            /* identical to box height */
-                                            textTransform: "uppercase",
-                                            color: "#8789A3",
-                                          }}
-                                        >
-                                          Time : 8.30 PM
-                                        </Typography>
-                                      </Stack>
-                                      <Typography
-                                        style={{
-                                          fontStyle: "normal",
-                                          fontWeight: "700",
-                                          fontSize: "20px",
-                                          color: "#863ED5",
-                                          position: "absolute",
-                                          right: 14,
-                                          top: 6,
-                                        }}
-                                      >
-                                        عشا
-                                      </Typography>
-                                    </ListItemText>
-                                  </ListItem>
-                                </List>
-                              </nav>
-                            </Box>
+                                      </Box>
+                                    </ListItem>
+                                  </React.Fragment>
+                                );
+                              })}
+                            </List>
                           </CardContent>
                         </Card>
                       </Grid>
-                      {/*Other Namaz*/}
-                      <Grid item xs={12} md={6}>
-                        <Card style={{ boxShadow: "none" }}>
-                          <CardContent>
-                            <Box>
-                              <nav>
-                                <List
-                                  subheader={
-                                    <ListSubheader
-                                      style={{
-                                        fontFamily: "Poppins",
-                                        fontStyle: "normal",
-                                        fontWeight: "600",
-                                        fontSize: "16px",
-                                        lineHeight: "24px",
-                                        color: " #672CBC",
+
+                      {/* Other Namaz */}
+                      <Grid item xs={12} sm={6} sx={{ display: "flex" }}>
+                        <Card
+                          sx={{
+                            width: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "space-between",
+                            bgcolor: "#ffffff",
+                            border: "1px solid rgba(0, 0, 0, 0.08)",
+                            borderRadius: "12px",
+                            boxShadow: "0 15px 20px -15px rgba(103, 44, 188, 0.06)",
+                            p: 3,
+                            transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease",
+                            "&:hover": {
+                              transform: "translateY(-4px)",
+                              boxShadow: "0 20px 25px -15px rgba(103, 44, 188, 0.12)",
+                            }
+                          }}
+                        >
+                          <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
+                            <Typography
+                              sx={{
+                                fontFamily: "Poppins, sans-serif",
+                                fontWeight: "700",
+                                fontSize: "16px",
+                                color: "#672CBC",
+                                mb: 1,
+                              }}
+                            >
+                              Other Namaz
+                            </Typography>
+                            <Divider sx={{ borderColor: "rgba(103, 44, 188, 0.15)", mb: 2 }} />
+                            <List disablePadding>
+                              {[
+                                { name: "Zuma", time: "1:00 PM", arabic: "زوما", icon: one },
+                                { name: "Eid Ul Fitr", time: "8:30 AM", arabic: "عيد أل فطر", icon: two },
+                                { name: "Eid ul zuha", time: "8:30 AM", arabic: "عيد أل زها", icon: three },
+                              ].map((prayer, index) => {
+                                return (
+                                  <React.Fragment key={prayer.name}>
+                                    {index > 0 && <Divider sx={{ borderColor: "rgba(0,0,0,0.05)", my: 0.8 }} />}
+                                    <ListItem
+                                      disablePadding
+                                      sx={{
+                                        py: 1,
+                                        px: 1.5,
+                                        borderRadius: "8px",
+                                        transition: "all 0.2s ease",
+                                        border: "1px solid transparent",
                                       }}
-                                      component="div"
                                     >
-                                      Other Namaz
-                                    </ListSubheader>
-                                  }
-                                >
-                                  {/*Juma Namaz*/}
-                                  <Divider
-                                    style={{
-                                      width: "100%", // Set width to 100%
-                                      border: "1px solid #672CBC",
-                                      margin: "10px 0", // Adjust margin
-                                    }}
-                                  />
-                                  <ListItem disablePadding>
-                                    <ListItemIcon
-                                      style={{ marginLeft: "15px" }}
-                                    >
-                                      <img
-                                        src={one}
-                                        alt="one"
-                                        style={{
-                                          height: "36px",
-                                          width: "36px",
-                                        }}
-                                      />
-                                    </ListItemIcon>
-                                    <ListItemText>
-                                      <Stack direction="column">
-                                        <Typography
+                                      <ListItemIcon sx={{ minWidth: 46 }}>
+                                        <img
+                                          src={prayer.icon}
+                                          alt={prayer.name}
                                           style={{
-                                            fontFamily: "Poppins",
+                                            height: "36px",
+                                            width: "36px",
+                                          }}
+                                        />
+                                      </ListItemIcon>
+                                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                                        <Stack direction="column">
+                                          <Typography
+                                            sx={{
+                                              fontFamily: "Poppins, sans-serif",
+                                              fontWeight: "600",
+                                              fontSize: "15px",
+                                              color: "#240F4F",
+                                            }}
+                                          >
+                                            {prayer.name}
+                                          </Typography>
+                                          <Typography
+                                            sx={{
+                                              fontFamily: "Inter, sans-serif",
+                                              fontWeight: "500",
+                                              fontSize: "11px",
+                                              textTransform: "uppercase",
+                                              color: "#8789A3",
+                                            }}
+                                          >
+                                            Time : {prayer.time}
+                                          </Typography>
+                                        </Stack>
+                                        <Typography
+                                          sx={{
                                             fontStyle: "normal",
-                                            fontweight: "500",
-                                            fontSize: "16px",
-
-                                            color: "#240F4F",
+                                            fontWeight: "700",
+                                            fontSize: "18px",
+                                            color: "#863ED5",
+                                            fontFamily: "Poppins, sans-serif",
                                           }}
                                         >
-                                          Zuma
+                                          {prayer.arabic}
                                         </Typography>
-                                        <Typography
-                                          style={{
-                                            fontFamily: "Poppins",
-                                            fontStyle: "normal",
-                                            fontWeight: "500",
-                                            fontSize: "12px",
-
-                                            /* identical to box height */
-                                            textTransform: "uppercase",
-                                            color: "#8789A3",
-                                          }}
-                                        >
-                                          Time : 1.00 PM
-                                        </Typography>
-                                      </Stack>
-                                      <Typography
-                                        style={{
-                                          fontStyle: "normal",
-                                          fontWeight: "700",
-                                          fontSize: "20px",
-                                          color: "#863ED5",
-                                          position: "absolute",
-                                          right: 14,
-                                          top: 6,
-                                        }}
-                                      >
-                                        زوما
-                                      </Typography>
-                                    </ListItemText>
-                                  </ListItem>
-                                  {/*Eid Ul Fitr*/}
-                                  <Divider
-                                    style={{
-                                      width: "100%",
-                                      marginTop: "5px",
-                                      marginBottom: "5px",
-                                      border:
-                                        "1px solid rgba(187, 196, 206, 0.35)",
-                                    }}
-                                  />
-                                  <ListItem disablePadding>
-                                    <ListItemIcon
-                                      style={{ marginLeft: "15px" }}
-                                    >
-                                      <img
-                                        src={two}
-                                        alt="one"
-                                        style={{
-                                          height: "36px",
-                                          width: "36px",
-                                        }}
-                                      />
-                                    </ListItemIcon>
-                                    <ListItemText>
-                                      <Stack direction="column">
-                                        <Typography
-                                          style={{
-                                            fontFamily: "Poppins",
-                                            fontStyle: "normal",
-                                            fontweight: "500",
-                                            fontSize: "16px",
-
-                                            color: "#240F4F",
-                                          }}
-                                        >
-                                          Eid Ul Fitr
-                                        </Typography>
-                                        <Typography
-                                          style={{
-                                            fontFamily: "Poppins",
-                                            fontStyle: "normal",
-                                            fontWeight: "500",
-                                            fontSize: "12px",
-
-                                            /* identical to box height */
-                                            textTransform: "uppercase",
-                                            color: "#8789A3",
-                                          }}
-                                        >
-                                          Time : 8.30 AM
-                                        </Typography>
-                                      </Stack>
-                                      <Typography
-                                        style={{
-                                          fontStyle: "normal",
-                                          fontWeight: "700",
-                                          fontSize: "20px",
-                                          color: "#863ED5",
-                                          position: "absolute",
-                                          right: 14,
-                                          top: 6,
-                                        }}
-                                      >
-                                        عيد أل فطر
-                                      </Typography>
-                                    </ListItemText>
-                                  </ListItem>
-                                  {/*EID UL ZUHA*/}
-                                  <Divider
-                                    style={{
-                                      width: "100%",
-                                      marginTop: "5px",
-                                      marginBottom: "5px",
-                                      border:
-                                        "1px solid rgba(187, 196, 206, 0.35)",
-                                    }}
-                                  />
-                                  <ListItem disablePadding>
-                                    <ListItemIcon
-                                      style={{ marginLeft: "15px" }}
-                                    >
-                                      <img
-                                        src={three}
-                                        alt="one"
-                                        style={{
-                                          height: "36px",
-                                          width: "36px",
-                                        }}
-                                      />
-                                    </ListItemIcon>
-                                    <ListItemText>
-                                      <Stack direction="column">
-                                        <Typography
-                                          style={{
-                                            fontFamily: "Poppins",
-                                            fontStyle: "normal",
-                                            fontweight: "500",
-                                            fontSize: "16px",
-
-                                            color: "#240F4F",
-                                          }}
-                                        >
-                                          Eid ul zuha
-                                        </Typography>
-                                        <Typography
-                                          style={{
-                                            fontFamily: "Poppins",
-                                            fontStyle: "normal",
-                                            fontWeight: "500",
-                                            fontSize: "12px",
-
-                                            /* identical to box height */
-                                            textTransform: "uppercase",
-                                            color: "#8789A3",
-                                          }}
-                                        >
-                                          Time : 8.30 AM
-                                        </Typography>
-                                      </Stack>
-                                      <Typography
-                                        style={{
-                                          fontStyle: "normal",
-                                          fontWeight: "700",
-                                          fontSize: "20px",
-                                          color: "#863ED5",
-                                          position: "absolute",
-                                          right: 14,
-                                          top: 6,
-                                        }}
-                                      >
-                                        عيد أل زها
-                                      </Typography>
-                                    </ListItemText>
-                                  </ListItem>
-                                </List>
-                              </nav>
-                            </Box>
+                                      </Box>
+                                    </ListItem>
+                                  </React.Fragment>
+                                );
+                              })}
+                            </List>
                           </CardContent>
                         </Card>
                       </Grid>
@@ -1193,17 +1003,18 @@ const Home = () => {
                   </Grid>
 
                   {/* Hadith Card (Left Column) */}
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} md={6} sx={{ display: "flex" }}>
                     <Card
                       sx={{
-                        bgcolor: "#ffffff", // Pure white like admin dashboard
-                        border: "1px solid rgba(0, 0, 0, 0.08)", // Muted border
-                        borderRadius: "12px", // Matching 12px border radius
-                        boxShadow: "0 15px 20px -15px rgba(103, 44, 188, 0.06)", // Soft purple shadow
+                        bgcolor: "#ffffff",
+                        border: "1px solid rgba(0, 0, 0, 0.08)",
+                        borderRadius: "12px",
+                        boxShadow: "0 15px 20px -15px rgba(103, 44, 188, 0.06)",
                         position: "relative",
                         overflow: "hidden",
                         p: 3,
                         height: "100%",
+                        width: "100%",
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "space-between",
@@ -1227,7 +1038,7 @@ const Home = () => {
                             fontWeight: "600",
                             textTransform: "uppercase",
                             letterSpacing: "1.5px",
-                            color: "#8789A3", // Muted label
+                            color: "#8789A3",
                           }}
                         >
                           Hadith of the Day
@@ -1254,7 +1065,7 @@ const Home = () => {
                             fontFamily: "Poppins, sans-serif",
                             fontSize: { xs: "20px", sm: "23px" },
                             fontWeight: "700",
-                            color: "#240F4F", // Deep brand color
+                            color: "#240F4F",
                             lineHeight: 1.4,
                             textAlign: "center"
                           }}
@@ -1267,7 +1078,7 @@ const Home = () => {
                             fontSize: { xs: "13px", sm: "14px" },
                             fontStyle: "italic",
                             fontWeight: "500",
-                            color: "#495057", // Dark gray body text
+                            color: "#495057",
                             lineHeight: 1.6,
                             textAlign: "center",
                             px: 1
@@ -1283,7 +1094,7 @@ const Home = () => {
                             fontFamily: "Inter, Poppins, sans-serif",
                             fontSize: "12px",
                             fontWeight: "600",
-                            color: "#8789A3", // Muted source text
+                            color: "#8789A3",
                           }}
                         >
                           — Sahih al-Bukhari 1
@@ -1293,17 +1104,18 @@ const Home = () => {
                   </Grid>
 
                   {/* Charity Progress & Spent Card (Right Column) */}
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} md={6} sx={{ display: "flex" }}>
                     <Card
                       sx={{
-                        bgcolor: "#ffffff", // Pure white like admin dashboard
-                        border: "1px solid rgba(0, 0, 0, 0.08)", // Muted border
-                        borderRadius: "12px", // Matching 12px border radius
-                        boxShadow: "0 15px 20px -15px rgba(103, 44, 188, 0.06)", // Soft purple shadow
+                        bgcolor: "#ffffff",
+                        border: "1px solid rgba(0, 0, 0, 0.08)",
+                        borderRadius: "12px",
+                        boxShadow: "0 15px 20px -15px rgba(103, 44, 188, 0.06)",
                         position: "relative",
                         overflow: "hidden",
                         p: 3,
                         height: "100%",
+                        width: "100%",
                         minHeight: "260px",
                         display: "flex",
                         flexDirection: "column",
@@ -1320,7 +1132,7 @@ const Home = () => {
                       
                       <Box>
                         {/* Top Row: Label & Icon */}
-                        <Box display="flex" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
+                        <Box display="flex" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 3 }}>
                           <Typography
                             sx={{
                               fontFamily: "Inter, Poppins, sans-serif",
@@ -1328,7 +1140,7 @@ const Home = () => {
                               fontWeight: "600",
                               textTransform: "uppercase",
                               letterSpacing: "1.5px",
-                              color: "#8789A3", // Muted label
+                              color: "#8789A3",
                             }}
                           >
                             Financial Transparency
@@ -1348,109 +1160,109 @@ const Home = () => {
                           </Box>
                         </Box>
 
-                        {/* Mosque Fund Meter */}
-                        <Box sx={{ mb: 3 }}>
-                          <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-                            <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "13px", fontWeight: "600", color: "#240F4F" }}>
-                              Mosque Fund (Renovations & Bills)
-                            </Typography>
-                            <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12px", fontWeight: "700", color: "#672CBC" }}>
-                              {mosquePercent}% Spent
-                            </Typography>
-                          </Box>
-                          <LinearProgress
-                            variant="determinate"
-                            value={mosquePercent}
-                            sx={{
-                              height: 8,
-                              borderRadius: 4,
-                              backgroundColor: "rgba(103, 44, 188, 0.08)",
-                              "& .MuiLinearProgress-bar": {
-                                borderRadius: 4,
-                                background: "linear-gradient(90deg, #DF98FA 0%, #672CBC 100%)",
-                              },
-                              my: 0.8,
-                            }}
-                          />
-                          <Box display="flex" justifyContent="space-between" sx={{ mt: 0.5 }}>
-                            <Box>
-                              <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "10px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                                Collected
-                              </Typography>
-                              <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12.5px", fontWeight: "700", color: "#240F4F" }}>
-                                ₹{totalMosqueReceived.toLocaleString()}
-                              </Typography>
-                            </Box>
-                            <Box sx={{ textAlign: "center" }}>
-                              <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "10px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                                Spent
-                              </Typography>
-                              <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12.5px", fontWeight: "700", color: "#E03131" }}>
-                                ₹{MOSQUE_SPENT.toLocaleString()}
-                              </Typography>
-                            </Box>
-                            <Box sx={{ textAlign: "right" }}>
-                              <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "10px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                                Balance
-                              </Typography>
-                              <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12.5px", fontWeight: "700", color: "#0CA678" }}>
-                                ₹{(totalMosqueReceived - MOSQUE_SPENT).toLocaleString()}
-                              </Typography>
-                            </Box>
-                          </Box>
-                        </Box>
+                        {/* Circular indicators with status logic */}
+                        {(() => {
+                          const getFundStatus = (percent) => {
+                            if (percent < 70) {
+                              return { color: "#0CA678", label: "HEALTHY" };
+                            } else if (percent <= 95) {
+                              return { color: "#FD7E14", label: "LOW" };
+                            } else {
+                              return { color: "#E03131", label: "DEFICIT" };
+                            }
+                          };
 
-                        {/* Imam Fund Meter */}
-                        <Box sx={{ mb: 2 }}>
-                          <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-                            <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "13px", fontWeight: "600", color: "#240F4F" }}>
-                              Imam & Staff Fund (Salaries & Care)
-                            </Typography>
-                            <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12px", fontWeight: "700", color: "#672CBC" }}>
-                              {imamPercent}% Spent
-                            </Typography>
-                          </Box>
-                          <LinearProgress
-                            variant="determinate"
-                            value={imamPercent}
-                            sx={{
-                              height: 8,
-                              borderRadius: 4,
-                              backgroundColor: "rgba(103, 44, 188, 0.08)",
-                              "& .MuiLinearProgress-bar": {
-                                borderRadius: 4,
-                                background: "linear-gradient(90deg, #DF98FA 0%, #672CBC 100%)",
-                              },
-                              my: 0.8,
-                            }}
-                          />
-                          <Box display="flex" justifyContent="space-between" sx={{ mt: 0.5 }}>
-                            <Box>
-                              <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "10px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                                Collected
-                              </Typography>
-                              <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12.5px", fontWeight: "700", color: "#240F4F" }}>
-                                ₹{totalImamReceived.toLocaleString()}
-                              </Typography>
-                            </Box>
-                            <Box sx={{ textAlign: "center" }}>
-                              <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "10px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                                Spent
-                              </Typography>
-                              <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12.5px", fontWeight: "700", color: "#E03131" }}>
-                                ₹{IMAM_SPENT.toLocaleString()}
-                              </Typography>
-                            </Box>
-                            <Box sx={{ textAlign: "right" }}>
-                              <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "10px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                                Balance
-                              </Typography>
-                              <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12.5px", fontWeight: "700", color: "#0CA678" }}>
-                                ₹{(totalImamReceived - IMAM_SPENT).toLocaleString()}
-                              </Typography>
-                            </Box>
-                          </Box>
-                        </Box>
+                          const mosqueStatus = getFundStatus(mosquePercent);
+                          const imamStatus = getFundStatus(imamPercent);
+
+                          return (
+                            <Grid container spacing={2}>
+                              {/* Mosque Fund */}
+                              <Grid item xs={12} sm={6}>
+                                <Box sx={{ borderRight: { sm: "1px solid rgba(0, 0, 0, 0.08)" }, pr: { sm: 1.5 }, pb: { xs: 2, sm: 0 } }}>
+                                  <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "13px", fontWeight: "700", color: "#240F4F", mb: 1.5 }}>
+                                    Mosque Fund
+                                  </Typography>
+                                  <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+                                    <CircularProgressWithLabel 
+                                      value={mosquePercent} 
+                                      colorCode={mosqueStatus.color} 
+                                      statusText={mosqueStatus.label} 
+                                    />
+                                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.4, flex: 1 }}>
+                                      <Box>
+                                        <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "9px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                          Collected
+                                        </Typography>
+                                        <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12px", fontWeight: "700", color: "#240F4F" }}>
+                                          ₹{totalMosqueReceived.toLocaleString()}
+                                        </Typography>
+                                      </Box>
+                                      <Box>
+                                        <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "9px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                          Spent
+                                        </Typography>
+                                        <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12px", fontWeight: "700", color: mosqueStatus.color }}>
+                                          ₹{MOSQUE_SPENT.toLocaleString()}
+                                        </Typography>
+                                      </Box>
+                                      <Box>
+                                        <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "9px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                          Balance
+                                        </Typography>
+                                        <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12px", fontWeight: "700", color: "#0CA678" }}>
+                                          ₹{(totalMosqueReceived - MOSQUE_SPENT).toLocaleString()}
+                                        </Typography>
+                                      </Box>
+                                    </Box>
+                                  </Box>
+                                </Box>
+                              </Grid>
+
+                              {/* Imam & Staff Fund */}
+                              <Grid item xs={12} sm={6}>
+                                <Box sx={{ pl: { sm: 1.5 } }}>
+                                  <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "13px", fontWeight: "700", color: "#240F4F", mb: 1.5 }}>
+                                    Imam & Staff Fund
+                                  </Typography>
+                                  <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+                                    <CircularProgressWithLabel 
+                                      value={imamPercent} 
+                                      colorCode={imamStatus.color} 
+                                      statusText={imamStatus.label} 
+                                    />
+                                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.4, flex: 1 }}>
+                                      <Box>
+                                        <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "9px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                          Collected
+                                        </Typography>
+                                        <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12px", fontWeight: "700", color: "#240F4F" }}>
+                                          ₹{totalImamReceived.toLocaleString()}
+                                        </Typography>
+                                      </Box>
+                                      <Box>
+                                        <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "9px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                          Spent
+                                        </Typography>
+                                        <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12px", fontWeight: "700", color: imamStatus.color }}>
+                                          ₹{IMAM_SPENT.toLocaleString()}
+                                        </Typography>
+                                      </Box>
+                                      <Box>
+                                        <Typography sx={{ fontFamily: "Inter, sans-serif", fontSize: "9px", color: "#8789A3", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                          Balance
+                                        </Typography>
+                                        <Typography sx={{ fontFamily: "Poppins, sans-serif", fontSize: "12px", fontWeight: "700", color: "#0CA678" }}>
+                                          ₹{(totalImamReceived - IMAM_SPENT).toLocaleString()}
+                                        </Typography>
+                                      </Box>
+                                    </Box>
+                                  </Box>
+                                </Box>
+                              </Grid>
+                            </Grid>
+                          );
+                        })()}
                       </Box>
 
                       <Button
@@ -1467,7 +1279,7 @@ const Home = () => {
                           borderRadius: "8px",
                           boxShadow: "0 4px 10px rgba(103, 44, 188, 0.15)",
                           py: 1,
-                          mt: 2,
+                          mt: 3,
                           "&:hover": {
                             background: "linear-gradient(135deg, #672CBC 0%, #240F4F 100%)",
                             boxShadow: "0 6px 15px rgba(103, 44, 188, 0.25)",

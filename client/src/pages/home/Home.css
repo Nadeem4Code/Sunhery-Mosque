@@ -22,3 +22,42 @@
   color: #FFB300 !important;
   transform: rotate(90deg);
 }
+
+/* Active prayer card highlight pulse animation */
+@keyframes activePulse {
+  0% {
+    box-shadow: 0 4px 10px rgba(103, 44, 188, 0.08);
+  }
+  50% {
+    box-shadow: 0 4px 15px rgba(103, 44, 188, 0.2), 0 0 0 2px rgba(103, 44, 188, 0.15);
+  }
+  100% {
+    box-shadow: 0 4px 10px rgba(103, 44, 188, 0.08);
+  }
+}
+
+.active-prayer-highlight {
+  animation: activePulse 2s infinite ease-in-out;
+}
+
+/* Green dot pulse animation */
+@keyframes dotPulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(12, 166, 120, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(12, 166, 120, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(12, 166, 120, 0);
+  }
+}
+
+.glowing-dot {
+  background-color: #0CA678;
+  border-radius: 50%;
+  animation: dotPulse 2s infinite;
+}
