@@ -23,6 +23,7 @@ import "./Home.css";
 
 // Icons
 import QuranIcon from "../../components/common/QuranIcon";
+import Brightness3Icon from "@mui/icons-material/Brightness3";
 import book from "../../assets/icons/book.svg";
 import one from "../../assets/icons/one.svg";
 import two from "../../assets/icons/two.svg";
@@ -205,6 +206,150 @@ const NextPrayerCard = () => {
             in {timeLeftStr}
           </Typography>
         </Box>
+      </Box>
+    </Card>
+  );
+};
+
+const IslamicDateCard = () => {
+  const [hijriDate, setHijriDate] = useState("");
+  const [hijriDateAr, setHijriDateAr] = useState("");
+  const [gregorianDate, setGregorianDate] = useState("");
+
+  React.useEffect(() => {
+    const today = new Date();
+    
+    // Configurable offset in days (for moonsighting adjustments)
+    const hijriOffset = 0; 
+    const adjustedDate = new Date(today);
+    adjustedDate.setDate(today.getDate() + hijriOffset);
+
+    // Format English Hijri
+    try {
+      const parts = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }).formatToParts(adjustedDate);
+      
+      let day = '';
+      let month = '';
+      let year = '';
+      parts.forEach(p => {
+        if (p.type === 'day') day = p.value;
+        if (p.type === 'month') month = p.value;
+        if (p.type === 'year') year = p.value;
+      });
+      setHijriDate(`${day} ${month} ${year} AH`);
+    } catch (e) {
+      setHijriDate("Islamic Calendar");
+    }
+
+    // Format Arabic Hijri
+    try {
+      const formattedAr = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }).format(adjustedDate);
+      setHijriDateAr(formattedAr);
+    } catch (e) {
+      setHijriDateAr("");
+    }
+
+    // Format Gregorian
+    const gregOptions = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+    setGregorianDate(new Intl.DateTimeFormat('en-US', gregOptions).format(today));
+  }, []);
+
+  return (
+    <Card
+      sx={{
+        bgcolor: "#ffffff", // Pure white like admin dashboard
+        border: "1px solid rgba(0, 0, 0, 0.08)", // Muted border
+        borderRadius: "12px", // Matching 12px border radius
+        boxShadow: "0 15px 20px -15px rgba(103, 44, 188, 0.06)", // Soft purple shadow
+        position: "relative",
+        overflow: "hidden",
+        p: 3,
+        minHeight: { xs: "auto", md: "205px" },
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "&:hover": {
+          transform: "translateY(-4px)",
+          boxShadow: "0 20px 25px -15px rgba(103, 44, 188, 0.12)",
+        }
+      }}
+    >
+      {/* Accent left border strip */}
+      <Box sx={{ position: "absolute", left: 0, top: 0, height: "100%", width: 4, bgcolor: "#672CBC" }} />
+      
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <Box>
+          <Typography
+            sx={{
+              fontFamily: "Inter, Poppins, sans-serif",
+              fontSize: "12px",
+              fontWeight: "600",
+              textTransform: "uppercase",
+              letterSpacing: "1px",
+              color: "#8789A3", // Muted label
+            }}
+          >
+            Islamic Calendar
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: "Hanken Grotesk, Poppins, sans-serif",
+              fontSize: "22px",
+              fontWeight: "700",
+              color: "#240F4F", // Deep color like total donors value
+              mt: 1.5,
+              lineHeight: 1.2,
+            }}
+          >
+            {hijriDate}
+          </Typography>
+        </Box>
+        <Box 
+          sx={{ 
+            bgcolor: "rgba(103, 44, 188, 0.1)", 
+            width: 36, 
+            height: 36, 
+            borderRadius: "8px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}
+        >
+          <Brightness3Icon sx={{ color: "#672CBC", fontSize: "20px", transform: "rotate(-15deg)" }} />
+        </Box>
+      </Box>
+
+      <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+        <Typography
+          sx={{
+            fontFamily: "Inter, Poppins, sans-serif",
+            fontSize: "12.5px",
+            fontWeight: "500",
+            color: "#8789A3",
+          }}
+        >
+          {gregorianDate}
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: "18px",
+            fontWeight: "700",
+            fontFamily: "Poppins, sans-serif",
+            color: "#672CBC", // Distinct purple for Arabic text
+            lineHeight: 1,
+          }}
+        >
+          {hijriDateAr}
+        </Typography>
       </Box>
     </Card>
   );
@@ -437,8 +582,11 @@ const Home = () => {
                           </div>
                         </Card>
                       </Grid>
-                      <Grid item xs={12} md={12}>
+                      <Grid item xs={12} sm={6}>
                         <NextPrayerCard />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <IslamicDateCard />
                       </Grid>
                       
                     </Grid>
