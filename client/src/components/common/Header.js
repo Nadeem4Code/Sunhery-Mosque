@@ -122,14 +122,15 @@ const Header = () => {
                 alignItems: "center",
                 fontFamily: "Poppins",
                 fontWeight: "700",
+                fontSize: "22px",
                 color: "#240F4F",
                 textDecoration: "none",
-                gap: 1
+                gap: 1.2
               }}
             >
               <img
                 src={logo}
-                style={{ width: "30px", height: "30px" }}
+                style={{ width: "36px", height: "36px" }}
                 alt="Logo"
               />
               Sunheri Mosque
@@ -201,15 +202,16 @@ const Header = () => {
                 flexGrow: 1,
                 fontFamily: "Poppins",
                 fontWeight: "700",
-                color: "#672CBC",
+                fontSize: "19px",
+                color: "#240F4F",
                 textDecoration: "none",
                 alignItems: "center",
-                gap: 1
+                gap: 1.2
               }}
             >
               <img
                 src={logo}
-                style={{ width: "24px", height: "24px" }}
+                style={{ width: "30px", height: "30px" }}
                 alt="Logo"
               />
               Sunheri Mosque

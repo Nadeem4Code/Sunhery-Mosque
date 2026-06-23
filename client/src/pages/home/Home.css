@@ -27,12 +27,15 @@
 @keyframes activePulse {
   0% {
     box-shadow: 0 4px 10px rgba(103, 44, 188, 0.08);
+    background-color: rgba(103, 44, 188, 0.03) !important;
   }
   50% {
     box-shadow: 0 4px 15px rgba(103, 44, 188, 0.2), 0 0 0 2px rgba(103, 44, 188, 0.15);
+    background-color: rgba(103, 44, 188, 0.08) !important;
   }
   100% {
     box-shadow: 0 4px 10px rgba(103, 44, 188, 0.08);
+    background-color: rgba(103, 44, 188, 0.03) !important;
   }
 }
 
