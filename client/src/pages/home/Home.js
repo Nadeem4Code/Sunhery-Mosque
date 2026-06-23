@@ -124,6 +124,7 @@ const NextPrayerCard = () => {
   return (
     <Card
       sx={{
+        
         background: "linear-gradient(135deg, #863ED5 0%, #240F4F 100%)", // Premium deep purple gradient
         color: "#fff",
         borderRadius: "5px",
@@ -131,6 +132,7 @@ const NextPrayerCard = () => {
         position: "relative",
         overflow: "hidden",
         p: 2.5,
+        minHeight: { xs: "auto", md: "205px" },
         transition: "transform 0.3s ease, box-shadow 0.3s ease",
         "&:hover": {
           transform: "translateY(-4px)",
