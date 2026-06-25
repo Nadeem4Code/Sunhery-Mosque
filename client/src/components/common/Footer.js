@@ -256,32 +256,26 @@ const Footer = () => {
       >
         <Typography
           sx={{
-            fontFamily: "Poppins, sans-serif",
-            fontSize: "13px",
-            fontWeight: "600",
-            color: "#240F4F"
-          }}
-        >
-          © 2026 Sunheri Mosque. All rights reserved.
-        </Typography>
-        <Typography
-          sx={{
-            fontFamily: "Inter, sans-serif",
-            fontSize: "11px",
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: "12.5px",
             fontWeight: "500",
             color: "#8789A3",
             letterSpacing: "0.5px"
           }}
         >
-          Designed & Developed with ❤️ by{" "}
+          Created By
           <Box
             component="span"
             sx={{
-              fontWeight: "700",
-              color: "#240F4F"
+              fontFamily: "Montserrat, sans-serif",
+              fontSize: "18px",
+              fontWeight: "800",
+              color: "black",
+              ml: 0.5,
+              verticalAlign: "middle"
             }}
           >
-            Mohd Nadeem
+            Mohd. Nadeem
           </Box>
         </Typography>
       </Box>

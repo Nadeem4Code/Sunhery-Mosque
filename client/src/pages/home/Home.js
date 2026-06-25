@@ -404,15 +404,15 @@ const getHijriDateAlgorithmic = (date, offset = 0) => {
   let hDay = Math.floor(days) + 1;
   
   const islamicMonths = [
-    "Muharram", "Safar", "Rabi' al-Awwal", "Rabi' al-Thani",
-    "Jumada al-Awwal", "Jumada al-Thani", "Rajab", "Sha'ban",
-    "Ramadan", "Shawwal", "Dhu al-Qadah", "Dhu al-Hijjah"
+    "Muharram", "Safar", "Rabi-ul-Awwal", "Rabi-us-Sani",
+    "Jamadi-ul-Awwal", "Jamadi-us-Sani", "Rajab", "Sha'ban",
+    "Ramzan", "Shawwal", "Zeeqa'dah", "Zilhajj"
   ];
   
   const islamicMonthsAr = [
-    "المحرّم", "صفر", "ربيع الأول", "ربيع الآخر",
-    "جمادى الأولى", "جمادى الآخرة", "رجب", "شعبان",
-    "رمضان", "شوّال", "ذو القعدة", "ذو الحجة"
+    "محرم", "سفر", "ربیع الاول", "ربیع الثانی",
+    "جمادی الاول", "جمادی الثانی", "رجب", "شعبان",
+    "رمضان", "شوال", "ذیقعدہ", "ذوالحجہ"
   ];
 
   return {

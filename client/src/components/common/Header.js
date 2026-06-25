@@ -1,19 +1,33 @@
 import React from "react";
-import AppBar from "@mui/material/AppBar";
-import Box from "@mui/material/Box";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
-import Container from "@mui/material/Container";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
+import {
+  AppBar,
+  Box,
+  Toolbar,
+  Typography,
+  Container,
+  Button,
+  IconButton,
+  Drawer,
+  Divider,
+  Avatar,
+  ButtonBase
+} from "@mui/material";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, logout } from "../../config/firebase";
 import axios from "axios";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 
-import menu from "../../assets/icons/menu.svg";
+// Icons
+import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import GroupRoundedIcon from "@mui/icons-material/GroupRounded";
+import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
+import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
+import ExitToAppRoundedIcon from "@mui/icons-material/ExitToAppRounded";
+import LoginRoundedIcon from "@mui/icons-material/LoginRounded";
+
 import logo from "../../assets/icons/logo.svg";
 
 const Header = () => {
@@ -25,14 +39,10 @@ const Header = () => {
   });
   const navigate = useNavigate();
 
-  const [anchorElNav, setAnchorElNav] = React.useState(null);
+  const [mobileOpen, setMobileOpen] = React.useState(false);
 
-  const handleOpenNavMenu = (event) => {
-    setAnchorElNav(event.currentTarget);
-  };
-
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
   };
 
   React.useEffect(() => {
@@ -99,6 +109,12 @@ const Header = () => {
 
   const isDashboard = location.pathname === "/dashboard";
 
+  const navItems = [
+    { text: "Home", path: "/", icon: <HomeRoundedIcon sx={{ color: "#672CBC" }} /> },
+    { text: "Donate", path: "/donation", icon: <FavoriteIcon sx={{ color: "#672CBC" }} /> },
+    { text: "Donors", path: "/showUserPublic", icon: <GroupRoundedIcon sx={{ color: "#672CBC" }} /> },
+  ];
+
   if (isDashboard) {
     return <Outlet />;
   }
@@ -136,59 +152,298 @@ const Header = () => {
               Sunheri Mosque
             </Typography>
 
-            {/* Mobile Menu Icon */}
+            {/* Mobile Menu Icon & Drawer */}
             <Box sx={{ display: { xs: "flex", md: "none" }, alignItems: "center" }}>
               <IconButton
-                size="large"
-                onClick={handleOpenNavMenu}
-                color="inherit"
-                sx={{ p: 1 }}
-              >
-                <img
-                  src={menu}
-                  alt="menu"
-                  style={{ width: "24px", height: "24px" }}
-                />
-              </IconButton>
-              <Menu
-                id="menu-appbar"
-                anchorEl={anchorElNav}
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "left",
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "left",
-                }}
-                open={Boolean(anchorElNav)}
-                onClose={handleCloseNavMenu}
+                onClick={handleDrawerToggle}
                 sx={{
-                  display: { xs: "block", md: "none" },
+                  p: 1,
+                  bgcolor: "rgba(0, 0, 0, 0.03)",
+                  color: "black",
+                  borderRadius: "8px",
+                  border: "1px solid rgba(0, 0, 0, 0.08)",
+                  transition: "all 0.2s",
+                  "&:hover": {
+                    bgcolor: "rgba(0, 0, 0, 0.08)",
+                  }
                 }}
               >
-                <MenuItem onClick={() => { handleCloseNavMenu(); navigate("/"); }}>
-                  <Typography sx={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "500" }}>Home</Typography>
-                </MenuItem>
+                <MenuRoundedIcon sx={{ fontSize: "24px" }} />
+              </IconButton>
+              
+              <Drawer
+                anchor="left"
+                open={mobileOpen}
+                onClose={handleDrawerToggle}
+                ModalProps={{ keepMounted: true }}
+                PaperProps={{
+                  sx: {
+                    width: 280,
+                    bgcolor: "#ffffff",
+                    boxShadow: "4px 0 24px rgba(36, 15, 79, 0.15)",
+                    borderRight: "1px solid rgba(0, 0, 0, 0.06)",
+                    display: "flex",
+                    flexDirection: "column",
+                    p: 2.5
+                  }
+                }}
+              >
+                {/* Drawer Header */}
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <img
+                      src={logo}
+                      style={{ width: "30px", height: "30px" }}
+                      alt="Logo"
+                    />
+                    <Typography
+                      sx={{
+                        fontFamily: "Poppins",
+                        fontWeight: "800",
+                        fontSize: "17px",
+                        color: "#240F4F",
+                        letterSpacing: "0.2px"
+                      }}
+                    >
+                      Sunheri Mosque
+                    </Typography>
+                  </Box>
+                  <IconButton 
+                    onClick={handleDrawerToggle}
+                    sx={{ 
+                      color: "#8789A3", 
+                      bgcolor: "rgba(0, 0, 0, 0.04)",
+                      "&:hover": { bgcolor: "rgba(0, 0, 0, 0.08)" }
+                    }}
+                  >
+                    <CloseRoundedIcon sx={{ fontSize: "20px" }} />
+                  </IconButton>
+                </Box>
 
-                <MenuItem onClick={() => { handleCloseNavMenu(); navigate("/donation"); }}>
-                  <Typography sx={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "500" }}>Donate</Typography>
-                </MenuItem>
-                <MenuItem onClick={() => { handleCloseNavMenu(); navigate("/showUserPublic"); }}>
-                  <Typography sx={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "500" }}>Donors</Typography>
-                </MenuItem>
-                {user && mongoUser && mongoUser.role === "admin" && (
-                  <MenuItem onClick={() => { handleCloseNavMenu(); navigate("/dashboard"); }}>
-                    <Typography sx={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "700", color: "#672CBC" }}>Dashboard</Typography>
-                  </MenuItem>
+                <Divider sx={{ mb: 2.5, borderColor: "rgba(0, 0, 0, 0.06)" }} />
+
+                {/* User Info inside Sidebar */}
+                {user && mongoUser && (
+                  <Box 
+                    sx={{ 
+                      display: "flex", 
+                      alignItems: "center", 
+                      gap: 1.5, 
+                      mb: 3, 
+                      p: 2, 
+                      bgcolor: "rgba(103, 44, 188, 0.04)", 
+                      borderRadius: "12px",
+                      border: "1px solid rgba(103, 44, 188, 0.06)",
+                      textAlign: "left"
+                    }}
+                  >
+                    <Avatar 
+                      sx={{ 
+                        width: 42, 
+                        height: 42, 
+                        bgcolor: "#672CBC", 
+                        fontFamily: "Poppins", 
+                        fontWeight: "700", 
+                        fontSize: "16px",
+                        boxShadow: "0 4px 10px rgba(103, 44, 188, 0.2)"
+                      }}
+                    >
+                      {mongoUser.userName ? mongoUser.userName.charAt(0).toUpperCase() : "U"}
+                    </Avatar>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography 
+                        noWrap
+                        sx={{ 
+                          fontFamily: "Poppins", 
+                          fontSize: "10px", 
+                          fontWeight: "600", 
+                          color: "#8789A3", 
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px"
+                        }}
+                      >
+                        Assalamu Alaikum
+                      </Typography>
+                      <Typography 
+                        noWrap
+                        sx={{ 
+                          fontFamily: "Poppins", 
+                          fontSize: "15px", 
+                          fontWeight: "700", 
+                          color: "#240F4F" 
+                        }}
+                      >
+                        {mongoUser.userName}
+                      </Typography>
+                    </Box>
+                  </Box>
                 )}
-                {user && mongoUser && mongoUser.role === "user" && (
-                  <MenuItem onClick={() => { handleCloseNavMenu(); navigate(`/user/${mongoUser.id}`); }}>
-                    <Typography sx={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "700", color: "#672CBC" }}>My Profile</Typography>
-                  </MenuItem>
-                )}
-              </Menu>
+
+                {/* Navigation Items */}
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1, flexGrow: 1 }}>
+                  {navItems.map((item) => {
+                    const isActive = location.pathname === item.path;
+                    return (
+                      <ButtonBase
+                        key={item.text}
+                        onClick={() => {
+                          handleDrawerToggle();
+                          navigate(item.path);
+                        }}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 2,
+                          width: "100%",
+                          py: 1.5,
+                          px: 2,
+                          borderRadius: "10px",
+                          bgcolor: isActive ? "rgba(103, 44, 188, 0.08)" : "transparent",
+                          color: isActive ? "#672CBC" : "#240F4F",
+                          justifyContent: "flex-start",
+                          transition: "all 0.2s",
+                          "&:hover": { 
+                            bgcolor: isActive ? "rgba(103, 44, 188, 0.12)" : "rgba(103, 44, 188, 0.04)" 
+                          }
+                        }}
+                      >
+                        {item.icon}
+                        <Typography 
+                          sx={{ 
+                            fontFamily: "Poppins", 
+                            fontSize: "14.5px", 
+                            fontWeight: isActive ? "700" : "600" 
+                          }}
+                        >
+                          {item.text}
+                        </Typography>
+                      </ButtonBase>
+                    );
+                  })}
+
+                  {/* Role-based Dashboard/Profile Links */}
+                  {user && mongoUser && mongoUser.role === "admin" && (
+                    <ButtonBase
+                      onClick={() => {
+                        handleDrawerToggle();
+                        navigate("/dashboard");
+                      }}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                        width: "100%",
+                        py: 1.5,
+                        px: 2,
+                        borderRadius: "10px",
+                        bgcolor: location.pathname === "/dashboard" ? "rgba(103, 44, 188, 0.08)" : "transparent",
+                        color: "#672CBC",
+                        justifyContent: "flex-start",
+                        transition: "all 0.2s",
+                        "&:hover": { 
+                          bgcolor: "rgba(103, 44, 188, 0.04)" 
+                        }
+                      }}
+                    >
+                      <DashboardRoundedIcon sx={{ color: "#672CBC" }} />
+                      <Typography sx={{ fontFamily: "Poppins", fontSize: "14.5px", fontWeight: "700" }}>
+                        Dashboard
+                      </Typography>
+                    </ButtonBase>
+                  )}
+
+                  {user && mongoUser && mongoUser.role === "user" && (
+                    <ButtonBase
+                      onClick={() => {
+                        handleDrawerToggle();
+                        navigate(`/user/${mongoUser.id}`);
+                      }}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                        width: "100%",
+                        py: 1.5,
+                        px: 2,
+                        borderRadius: "10px",
+                        bgcolor: location.pathname.startsWith("/user/") ? "rgba(103, 44, 188, 0.08)" : "transparent",
+                        color: "#672CBC",
+                        justifyContent: "flex-start",
+                        transition: "all 0.2s",
+                        "&:hover": { 
+                          bgcolor: "rgba(103, 44, 188, 0.04)" 
+                        }
+                      }}
+                    >
+                      <PersonRoundedIcon sx={{ color: "#672CBC" }} />
+                      <Typography sx={{ fontFamily: "Poppins", fontSize: "14.5px", fontWeight: "700" }}>
+                        My Profile
+                      </Typography>
+                    </ButtonBase>
+                  )}
+                </Box>
+
+                <Divider sx={{ my: 2.5, borderColor: "rgba(0, 0, 0, 0.06)" }} />
+
+                {/* Action Button */}
+                <Box>
+                  {user ? (
+                    <Button
+                      onClick={() => {
+                        handleDrawerToggle();
+                        handleLogout();
+                      }}
+                      variant="outlined"
+                      fullWidth
+                      startIcon={<ExitToAppRoundedIcon />}
+                      sx={{
+                        fontFamily: "Poppins",
+                        fontWeight: "700",
+                        fontSize: "13.5px",
+                        borderColor: "#ff5252",
+                        color: "#ff5252",
+                        textTransform: "none",
+                        py: 1.2,
+                        borderRadius: "10px",
+                        "&:hover": {
+                          borderColor: "#e04040",
+                          color: "#e04040",
+                          backgroundColor: "rgba(255, 82, 82, 0.04)"
+                        }
+                      }}
+                    >
+                      Logout
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => {
+                        handleDrawerToggle();
+                        navigate("/login");
+                      }}
+                      variant="contained"
+                      fullWidth
+                      startIcon={<LoginRoundedIcon />}
+                      sx={{
+                        fontFamily: "Poppins",
+                        fontWeight: "700",
+                        fontSize: "13.5px",
+                        background: "linear-gradient(135deg, #DF98FA 0%, #9055FF 100%)",
+                        color: "white",
+                        textTransform: "none",
+                        py: 1.2,
+                        borderRadius: "10px",
+                        boxShadow: "0 4px 14px rgba(144, 85, 255, 0.25)",
+                        "&:hover": {
+                          background: "linear-gradient(135deg, #9055FF 0%, #DF98FA 100%)",
+                          boxShadow: "none"
+                        }
+                      }}
+                    >
+                      Sign In
+                    </Button>
+                  )}
+                </Box>
+              </Drawer>
             </Box>
 
             {/* Mobile Brand Name */}
