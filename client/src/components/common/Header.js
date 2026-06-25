@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   AppBar,
   Box,
@@ -12,10 +12,9 @@ import {
   Avatar,
   ButtonBase
 } from "@mui/material";
-import { useAuthState } from "react-firebase-hooks/auth";
-import { auth, logout } from "../../config/firebase";
-import axios from "axios";
+import { logout } from "../../config/firebase";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import UserContext from "../../context/BooksContext";
 
 // Icons
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
@@ -32,11 +31,7 @@ import logo from "../../assets/icons/logo.svg";
 
 const Header = () => {
   const location = useLocation();
-  const [user] = useAuthState(auth);
-  const [mongoUser, setMongoUser] = React.useState(() => {
-    const saved = localStorage.getItem("mongoUser");
-    return saved ? JSON.parse(saved) : null;
-  });
+  const { user, mongoUser } = useContext(UserContext);
   const navigate = useNavigate();
 
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -44,63 +39,6 @@ const Header = () => {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
-
-  React.useEffect(() => {
-    if (user) {
-      const isAdminEmail = user.email === "7457861116@jama-masjid.com";
-      axios
-        .get(`http://localhost:3001/books/uid/${user.uid}`)
-        .then((res) => {
-          let data = res.data;
-          // Force update in case role or userName is incorrect for admin
-          if (isAdminEmail && (data.role !== "admin" || data.userName !== "Mohd Nadeem")) {
-            axios.put(`http://localhost:3001/books/${data.id}`, {
-              ...data,
-              userName: "Mohd Nadeem",
-              role: "admin",
-              phoneNumber: "7457861116"
-            })
-            .then((updateRes) => {
-              setMongoUser(updateRes.data);
-              localStorage.setItem("mongoUser", JSON.stringify(updateRes.data));
-            })
-            .catch((updateErr) => {
-              console.error("Failed to update admin details in Header:", updateErr);
-              setMongoUser(data);
-              localStorage.setItem("mongoUser", JSON.stringify(data));
-            });
-          } else {
-            setMongoUser(data);
-            localStorage.setItem("mongoUser", JSON.stringify(data));
-          }
-        })
-        .catch((err) => {
-          console.error("Header check failed:", err);
-          if (err.response && err.response.status === 404) {
-            // Auto-register in MongoDB as admin or standard user
-            const regData = {
-              uid: user.uid,
-              userName: isAdminEmail ? "Mohd Nadeem" : (user.displayName || (user.email ? user.email.split("@")[0] : "Standard User")),
-              email: user.email || `${user.uid}@jama-masjid.com`,
-              role: isAdminEmail ? "admin" : "user",
-              phoneNumber: isAdminEmail ? "7457861116" : (user.phoneNumber || "0000000000"),
-              fatherName: ""
-            };
-            axios.post("http://localhost:3001/books/register", regData)
-              .then((regRes) => {
-                setMongoUser(regRes.data);
-                localStorage.setItem("mongoUser", JSON.stringify(regRes.data));
-              })
-              .catch((regErr) => {
-                console.error("Header auto-registration failed:", regErr);
-              });
-          }
-        });
-    } else {
-      setMongoUser(null);
-      localStorage.removeItem("mongoUser");
-    }
-  }, [user]);
 
   const handleLogout = () => {
     logout();

@@ -19,7 +19,8 @@ const ExpenditureSchema = new mongoose.Schema({
   date: {
     type: Date,
     required: [true, 'Date is required'],
-    default: Date.now
+    default: Date.now,
+    index: true
   },
   year: {
     type: String,

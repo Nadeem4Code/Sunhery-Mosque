@@ -300,6 +300,79 @@ const verifyRazorpayPayment = async (req, res, next) => {
   }
 };
 
+// @desc Get Donation Stats
+// @route GET /books/stats
+const getDonationStats = async (req, res, next) => {
+  try {
+    const { year } = req.query;
+    const users = await User.find().lean();
+    let totalMosqueReceived = 0;
+    let totalImamReceived = 0;
+    let mosqueDonors = new Set();
+    let imamDonors = new Set();
+
+    users.forEach((user) => {
+      // Mosque
+      if (user.mosque && Array.isArray(user.mosque)) {
+        user.mosque.forEach((yearItem) => {
+          if (!year || yearItem.year === year) {
+            if (yearItem.months && Array.isArray(yearItem.months)) {
+              yearItem.months.forEach((monthItem) => {
+                if (monthItem.amount) {
+                  totalMosqueReceived += Number(monthItem.amount);
+                  mosqueDonors.add(user._id.toString());
+                }
+              });
+            }
+          }
+        });
+      }
+
+      // Imam
+      if (user.imam && Array.isArray(user.imam)) {
+        user.imam.forEach((yearItem) => {
+          if (!year || yearItem.year === year) {
+            if (yearItem.months && Array.isArray(yearItem.months)) {
+              yearItem.months.forEach((monthItem) => {
+                if (monthItem.amount) {
+                  totalImamReceived += Number(monthItem.amount);
+                  imamDonors.add(user._id.toString());
+                }
+              });
+            }
+          }
+        });
+      }
+
+      // Legacy years
+      if (user.years && Array.isArray(user.years)) {
+        user.years.forEach((yearItem) => {
+          if (!year || yearItem.year === year) {
+            if (yearItem.months && Array.isArray(yearItem.months)) {
+              yearItem.months.forEach((monthItem) => {
+                if (monthItem.amount) {
+                  totalMosqueReceived += Number(monthItem.amount);
+                  mosqueDonors.add(user._id.toString());
+                }
+              });
+            }
+          }
+        });
+      }
+    });
+
+    res.status(200).json({
+      totalDonors: users.length,
+      totalMosqueReceived,
+      totalImamReceived,
+      mosqueDonorsCount: mosqueDonors.size,
+      imamDonorsCount: imamDonors.size
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getUsers,
   getUserById,
@@ -309,5 +382,6 @@ module.exports = {
   getUserByUid,
   registerUser,
   createRazorpayOrder,
-  verifyRazorpayPayment
+  verifyRazorpayPayment,
+  getDonationStats
 };

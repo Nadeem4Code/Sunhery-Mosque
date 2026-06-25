@@ -9,7 +9,8 @@ const {
   getUserByUid,
   registerUser,
   createRazorpayOrder,
-  verifyRazorpayPayment
+  verifyRazorpayPayment,
+  getDonationStats
 } = require('../controllers/userController');
 
 router.route('/')
@@ -21,6 +22,9 @@ router.route('/register')
 
 router.route('/uid/:uid')
   .get(getUserByUid);
+
+router.route('/stats')
+  .get(getDonationStats);
 
 router.route('/payment/order')
   .post(createRazorpayOrder);

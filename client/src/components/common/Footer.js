@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import ButtonBase from "@mui/material/ButtonBase";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
-import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "../../config/firebase";
-import axios from "axios";
+import UserContext from "../../context/BooksContext";
 
 // Icons from @mui/icons-material
 import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
@@ -37,23 +35,7 @@ const typography = {
 const Footer = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [user] = useAuthState(auth);
-  const [mongoUser, setMongoUser] = useState(null);
-
-  useEffect(() => {
-    if (user) {
-      axios
-        .get(`http://localhost:3001/books/uid/${user.uid}`)
-        .then((res) => {
-          setMongoUser(res.data);
-        })
-        .catch((err) => {
-          console.error("Footer check failed:", err);
-        });
-    } else {
-      setMongoUser(null);
-    }
-  }, [user]);
+  const { user, mongoUser } = useContext(UserContext);
 
   let targetLink = "/login";
   if (user && mongoUser) {
