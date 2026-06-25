@@ -12,6 +12,7 @@ import Footer from "./components/common/Footer";
 import AdminProtectedRoute from "./components/common/AdminProtectedRoute";
 import AdminDashboardLayout from "./components/common/AdminDashboardLayout";
 import UserContext from "./context/BooksContext";
+import ErrorPage from "./pages/error/ErrorPage";
 
 // Lazy-load page components for route-based code splitting
 const Home = lazy(() => import("./pages/home/Home"));
@@ -89,7 +90,7 @@ const App = () => {
 
   const router = createBrowserRouter(
     createRoutesFromElements(
-      <Route path="/">
+      <Route path="/" errorElement={<ErrorPage />}>
         {/* Public Routes - Wrapped with Header & Footer */}
         <Route
           element={

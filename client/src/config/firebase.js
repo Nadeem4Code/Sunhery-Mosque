@@ -126,6 +126,12 @@ const registerWithEmailAndPassword = async (userName, email, password, role = "a
 // Register Normal User via Donation Page
 const registerNormalUserWithDonation = async (userName, email, password, phoneNumber, fatherName, donationType, amount, year, month, day) => {
   try {
+    // Check if phone number is already registered in MongoDB
+    const checkRes = await axios.get(`${API_URL}/check-phone/${phoneNumber}`);
+    if (checkRes.data.exists) {
+      throw new Error("This phone number is already registered. Please sign in instead.");
+    }
+
     const res = await createUserWithEmailAndPassword(auth, email, password);
     const user = res.user;
     
@@ -290,6 +296,12 @@ const getTaskById = async (taskId) => {
 // Register user in auth and MongoDB before payment
 const registerUserBeforePayment = async (userName, email, password, phoneNumber, fatherName) => {
   try {
+    // Check if phone number is already registered in MongoDB
+    const checkRes = await axios.get(`${API_URL}/check-phone/${phoneNumber}`);
+    if (checkRes.data.exists) {
+      throw new Error("This phone number is already registered. Please sign in instead.");
+    }
+
     const res = await createUserWithEmailAndPassword(auth, email, password);
     const user = res.user;
     

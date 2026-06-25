@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
+import Container from "@mui/material/Container";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
@@ -12,12 +13,11 @@ import Typography from "@mui/material/Typography";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import Avatar from "@mui/material/Avatar";
 import { NavLink } from "react-router-dom";
+import IconButton from "@mui/material/IconButton";
 
-
-
-
-// Search
-import SearchSecond from '../../assets/icons/searchSecond.svg'
+// Icons
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 
 // Loader
 
@@ -52,22 +52,33 @@ function ShowUserPublic() {
   };
 
   return (
-    <Box style={{ marginTop: "24px" }}>
+    <Container maxWidth="md" sx={{ mt: 3, mb: 6 }}>
       {loading ? (
-        <Card style={{ boxShadow: "none" }}>
-          {/* Search bar skeleton */}
-          <div
-            style={{
+        <Box sx={{ p: 0 }}>
+          {/* Glassmorphic Search Bar Skeleton */}
+          <Box
+            sx={{
               display: "flex",
-              flexDirection: "row",
-              justifyContent: "center",
-              marginTop: "10px",
-              marginBottom: "20px",
+              alignItems: "center",
+              width: "100%",
+              maxWidth: "480px",
+              height: "45px",
+              borderRadius: "16px",
+              padding: "6px 16px",
+              background: "rgba(255, 255, 255, 0.45)",
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(103, 44, 188, 0.15)",
+              boxShadow: "0 8px 32px rgba(36, 15, 79, 0.03)",
+              mx: "auto",
+              mt: 1,
+              mb: 4,
+              boxSizing: "border-box"
             }}
           >
-            <Skeleton variant="rectangular" width={220} height={40} sx={{ borderRadius: "5px" }} />
-          </div>
-          <Card>
+            <Skeleton variant="circular" width={22} height={22} sx={{ mr: 1.5, flexShrink: 0 }} />
+            <Skeleton variant="text" width="50%" height={24} />
+          </Box>
+          <Card sx={{ borderRadius: "20px", boxShadow: "0 8px 32px rgba(36, 15, 79, 0.04)", border: "1px solid rgba(36, 15, 79, 0.06)" }}>
             <CardContent>
               <Skeleton variant="text" width="10%" height={24} sx={{ mb: 2 }} />
 
@@ -75,13 +86,15 @@ function ShowUserPublic() {
                 {[1, 2, 3, 4, 5, 6].map((item) => (
                   <Grid key={item} item xs={12} md={6} sm={12}>
                     <Box sx={{ width: "100%", display: "flex", alignItems: "center", py: 1 }}>
-                      <Skeleton variant="circular" width={40} height={40} sx={{ mr: 2 }} />
-                      <Box sx={{ flexGrow: 1 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", mr: { xs: 1.5, sm: 2 }, flexShrink: 0 }}>
+                        <Skeleton variant="circular" width={40} height={40} />
+                      </Box>
+                      <Box sx={{ flexGrow: 1, minWidth: 0, pr: 1.5 }}>
                         <Skeleton variant="text" width="60%" height={24} />
                         <Skeleton variant="text" width="40%" height={16} />
                       </Box>
-                      <Skeleton variant="text" width="80px" height={20} sx={{ mr: 2 }} />
-                      <Skeleton variant="circular" width={24} height={24} />
+                      <Skeleton variant="text" width="75px" height={20} sx={{ mr: { xs: 1, sm: 5 }, flexShrink: 0 }} />
+                      <Skeleton variant="circular" width={24} height={24} sx={{ flexShrink: 0 }} />
                     </Box>
                     <Divider style={{ width: "100%" }} />
                   </Grid>
@@ -89,61 +102,84 @@ function ShowUserPublic() {
               </Grid>
             </CardContent>
           </Card>
-        </Card>
+        </Box>
       ) : (
-        <Card style={{ boxShadow: "none" }}>
-          <div
-            style={{
+        <Box sx={{ p: 0 }}>
+          {/* Transparent Glassmorphic Search Bar */}
+          <Box
+            sx={{
               display: "flex",
-              flexDirection: "row",
-              justifyContent: "center",
-              marginTop: "10px",
-              marginBottom: "20px",
+              alignItems: "center",
+              width: "100%",
+              maxWidth: "480px",
+              height: "45px",
+              borderRadius: "16px",
+              padding: "6px 16px",
+              background: "rgba(255, 255, 255, 0.45)",
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(103, 44, 188, 0.15)",
+              boxShadow: "0 8px 32px rgba(36, 15, 79, 0.03)",
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              mx: "auto",
+              mt: 1,
+              mb: 4,
+              boxSizing: "border-box",
+              "&:hover": {
+                background: "rgba(255, 255, 255, 0.65)",
+                borderColor: "rgba(103, 44, 188, 0.3)",
+                boxShadow: "0 12px 32px rgba(103, 44, 188, 0.08)",
+              },
+              "&:focus-within": {
+                background: "#ffffff",
+                borderColor: "#672CBC",
+                boxShadow: "0 12px 36px rgba(103, 44, 188, 0.14)",
+                transform: "translateY(-1px)",
+              }
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                width: "220px",
-                borderRadius: "5px",
-                paddingRight: "5px",
-                padding: "3px",
-                boxShadow:
-                  "0 5px 5px rgba(0, 0, 0, 0.1), 0 0 5px rgba(0, 0, 0, 0.1)",
+            <SearchRoundedIcon
+              sx={{
+                color: query ? "#672CBC" : "#8789A3",
+                mr: 1.5,
+                fontSize: "22px",
+                transition: "color 0.2s ease"
               }}
-            >
-              <span
-                style={{
-                  padding: "5px",
-                  marginTop: "5px",
-                  borderRadius: "0 10px 10px 0",
-                  cursor: "pointer",
-                  paddingLeft: "20px",
+            />
+            <input
+              type="text"
+              value={query}
+              onChange={handleQuery}
+              placeholder="Search donors by name or phone..."
+              style={{
+                width: "100%",
+                border: "none",
+                outline: "none",
+                background: "transparent",
+                fontFamily: "Poppins",
+                fontSize: "15px",
+                color: "#240F4F",
+              }}
+            />
+            {query && (
+              <IconButton
+                onClick={() => setQuery("")}
+                size="small"
+                sx={{
+                  p: 0.5,
+                  color: "#8789A3",
+                  transition: "all 0.2s",
+                  "&:hover": {
+                    color: "#ff5252",
+                    bgcolor: "rgba(255, 82, 82, 0.05)"
+                  }
                 }}
               >
-                <img src={SearchSecond} alt="search" />
-              </span>
-              <input
-                type="text"
-                value={query}
-                onChange={handleQuery}
-                style={{
-                  padding: "5px",
-                  flex: 1,
-                  border: "none",
-                  outline: "none",
-                  backgroundColor: "transparent",
-                  fontSize: "16px",
-                  fontFamily: "Poppins",
-                  width: "90px",
-                }}
-                placeholder="Search..."
-              />
-            </div>
-          </div>
-          <Card>
-            <CardContent>
+                <CloseRoundedIcon fontSize="small" />
+              </IconButton>
+            )}
+          </Box>
+          <Card sx={{ borderRadius: "20px", boxShadow: "0 8px 32px rgba(36, 15, 79, 0.04)", border: "1px solid rgba(36, 15, 79, 0.06)" }}>
+            <CardContent sx={{ p: { xs: 2.5, md: 4 } }}>
               <Typography
                 style={{
                   color: "grey",
@@ -152,7 +188,7 @@ function ShowUserPublic() {
                   fontWeight: "400",
                 }}
               >
-                Users
+                Donors
               </Typography>
 
               <Grid container spacing={2}>
@@ -185,7 +221,7 @@ function ShowUserPublic() {
                         <nav aria-label="main mailbox folders">
                           <List>
                             <ListItem disablePadding>
-                              <ListItemIcon>
+                              <ListItemIcon sx={{ minWidth: { xs: "48px", sm: "56px" } }}>
                                 <Avatar
                                   variant="rounded"
                                   style={{
@@ -200,34 +236,41 @@ function ShowUserPublic() {
                                   {book.userName.slice(0, 1).toUpperCase()}
                                 </Avatar>
                               </ListItemIcon>
-                              <ListItemText>
+                              <ListItemText sx={{ minWidth: 0, pr: 1.5 }}>
                                 <Typography
-                                  style={{
-                                    fontSize: "18px",
+                                  sx={{
+                                    fontSize: { xs: "13px", sm: "16px", md: "18px" },
                                     fontFamily: "Poppins",
                                     fontWeight: "600",
+                                    whiteSpace: "nowrap",
+                                    overflow: "visible",
+                                    color: "#240F4F"
                                   }}
                                 >
                                   {book.userName}
                                 </Typography>
                                 <Typography
-                                  style={{
-                                    fontSize: "14px",
+                                  sx={{
+                                    fontSize: { xs: "11px", sm: "12.5px", md: "14px" },
                                     fontFamily: "Poppins",
                                     fontWeight: "500",
                                     color: "#8789A3",
+                                    whiteSpace: "nowrap",
+                                    overflow: "visible"
                                   }}
                                 >
                                   {book.fatherName}
                                 </Typography>
                               </ListItemText>
                               <Typography
-                                style={{
+                                sx={{
                                   color: "#8789A3",
-                                  fontSize: "14px",
+                                  fontSize: { xs: "12.5px", sm: "14px" },
                                   fontWeight: "500",
-                                  paddingRight: "40px",
+                                  pr: { xs: "8px", sm: "40px" },
                                   fontFamily: "Poppins",
+                                  whiteSpace: "nowrap",
+                                  flexShrink: 0
                                 }}
                               >
                                 {book.phoneNumber}
@@ -252,9 +295,9 @@ function ShowUserPublic() {
               </Grid>
             </CardContent>
           </Card>
-        </Card>
+        </Box>
       )}
-    </Box>
+    </Container>
   );
 }
 

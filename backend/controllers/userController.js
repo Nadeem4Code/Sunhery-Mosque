@@ -189,6 +189,9 @@ const registerUser = async (req, res, next) => {
     if (phoneNumber) {
       const phoneExists = await User.findOne({ phoneNumber });
       if (phoneExists) {
+        if (phoneExists.uid && phoneExists.uid !== uid) {
+          return res.status(400).json({ message: 'This phone number is already registered. Please sign in.' });
+        }
         // Link the existing user to this Firebase account
         phoneExists.uid = uid;
         phoneExists.email = email;
@@ -373,6 +376,20 @@ const getDonationStats = async (req, res, next) => {
   }
 };
 
+// @desc Check if phone number is already registered in MongoDB
+// @route GET /books/check-phone/:phoneNumber
+const checkPhone = async (req, res, next) => {
+  try {
+    const user = await User.findOne({ phoneNumber: req.params.phoneNumber });
+    if (user && user.uid) {
+      return res.status(200).json({ exists: true, message: 'This phone number is already registered. Please sign in.' });
+    }
+    res.status(200).json({ exists: false });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getUsers,
   getUserById,
@@ -383,5 +400,6 @@ module.exports = {
   registerUser,
   createRazorpayOrder,
   verifyRazorpayPayment,
-  getDonationStats
+  getDonationStats,
+  checkPhone
 };

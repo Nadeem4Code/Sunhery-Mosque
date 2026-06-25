@@ -9,7 +9,7 @@ import UserContext from "../../context/BooksContext";
 
 // Icons from @mui/icons-material
 import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
-import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
+import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
 import ScheduleRoundedIcon from "@mui/icons-material/ScheduleRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
@@ -48,7 +48,7 @@ const Footer = () => {
 
   // Determine active states for the tabs
   const isHomeActive = location.pathname === "/";
-  const isFinanceActive = location.pathname === "/showUserPublic";
+  const isDonorsActive = location.pathname === "/showUserPublic";
   const isProfileActive = location.pathname === targetLink || location.pathname.startsWith("/user/");
 
   return (
@@ -106,7 +106,7 @@ const Footer = () => {
           </Typography>
         </ButtonBase>
 
-        {/* Finance/Donors Tab */}
+        {/* Donors Tab */}
         <ButtonBase
           onClick={() => navigate("/showUserPublic")}
           sx={{
@@ -123,7 +123,7 @@ const Footer = () => {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              bgcolor: isFinanceActive ? "rgba(103, 44, 188, 0.08)" : "transparent",
+              bgcolor: isDonorsActive ? "rgba(103, 44, 188, 0.08)" : "transparent",
               borderRadius: "16px",
               width: "48px",
               height: "32px",
@@ -131,10 +131,10 @@ const Footer = () => {
               transition: "background-color 0.2s ease"
             }}
           >
-            <PaymentsRoundedIcon sx={{ fontSize: "22px", color: isFinanceActive ? "#672CBC" : "#8789A3" }} />
+            <PeopleRoundedIcon sx={{ fontSize: "22px", color: isDonorsActive ? "#672CBC" : "#8789A3" }} />
           </Box>
-          <Typography sx={{ ...typography.labelSm, fontSize: "8.5px", fontWeight: "700", textTransform: "uppercase", color: isFinanceActive ? "#672CBC" : "#8789A3" }}>
-            Finance
+          <Typography sx={{ ...typography.labelSm, fontSize: "8.5px", fontWeight: "700", textTransform: "uppercase", color: isDonorsActive ? "#672CBC" : "#8789A3" }}>
+            Donors
           </Typography>
         </ButtonBase>
 
