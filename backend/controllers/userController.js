@@ -120,14 +120,14 @@ const getUserByUid = async (req, res, next) => {
     }
 
     // Auto-promote hardcoded admin if matching phone/email
-    if (user.phoneNumber === '7457861116' || user.email === '7457861116@jama-masjid.com') {
+    if (user.phoneNumber === process.env.SUPER_ADMIN_PHONE || user.email === process.env.SUPER_ADMIN_EMAIL) {
       let needsSave = false;
       if (user.role !== 'admin') {
         user.role = 'admin';
         needsSave = true;
       }
-      if (user.userName !== 'Mohd Nadeem') {
-        user.userName = 'Mohd Nadeem';
+      if (user.userName !== process.env.SUPER_ADMIN_NAME) {
+        user.userName = process.env.SUPER_ADMIN_NAME;
         needsSave = true;
       }
       if (needsSave) {
@@ -150,19 +150,19 @@ const registerUser = async (req, res, next) => {
       return res.status(400).json({ message: 'uid, email, and userName are required' });
     }
 
-    const isAdmin = phoneNumber === '7457861116' || email === '7457861116@jama-masjid.com';
+    const isAdmin = phoneNumber === process.env.SUPER_ADMIN_PHONE || email === process.env.SUPER_ADMIN_EMAIL;
 
     // 1. Check if UID already exists
     let user = await User.findOne({ uid });
     if (user) {
-      if (isAdmin || user.phoneNumber === '7457861116' || user.email === '7457861116@jama-masjid.com') {
+      if (isAdmin || user.phoneNumber === process.env.SUPER_ADMIN_PHONE || user.email === process.env.SUPER_ADMIN_EMAIL) {
         let needsSave = false;
         if (user.role !== 'admin') {
           user.role = 'admin';
           needsSave = true;
         }
-        if (user.userName !== 'Mohd Nadeem') {
-          user.userName = 'Mohd Nadeem';
+        if (user.userName !== process.env.SUPER_ADMIN_NAME) {
+          user.userName = process.env.SUPER_ADMIN_NAME;
           needsSave = true;
         }
         if (needsSave) {
@@ -175,9 +175,9 @@ const registerUser = async (req, res, next) => {
     // 2. Check if email already exists
     const emailExists = await User.findOne({ email });
     if (emailExists) {
-      if (isAdmin || email === '7457861116@jama-masjid.com') {
+      if (isAdmin || email === process.env.SUPER_ADMIN_EMAIL) {
         emailExists.role = 'admin';
-        emailExists.userName = 'Mohd Nadeem';
+        emailExists.userName = process.env.SUPER_ADMIN_NAME;
         if (uid) emailExists.uid = uid;
         const savedAdmin = await emailExists.save();
         return res.status(200).json(savedAdmin);
@@ -195,10 +195,10 @@ const registerUser = async (req, res, next) => {
         // Link the existing user to this Firebase account
         phoneExists.uid = uid;
         phoneExists.email = email;
-        const isUserAdmin = isAdmin || phoneNumber === '7457861116';
+        const isUserAdmin = isAdmin || phoneNumber === process.env.SUPER_ADMIN_PHONE;
         phoneExists.role = isUserAdmin ? 'admin' : (role || 'user');
         if (isUserAdmin) {
-          phoneExists.userName = 'Mohd Nadeem';
+          phoneExists.userName = process.env.SUPER_ADMIN_NAME;
         } else if (userName) {
           phoneExists.userName = userName;
         }
@@ -212,7 +212,7 @@ const registerUser = async (req, res, next) => {
     const newUser = await User.create({
       uid,
       email,
-      userName: isAdmin ? 'Mohd Nadeem' : userName,
+      userName: isAdmin ? process.env.SUPER_ADMIN_NAME : userName,
       role: isAdmin ? 'admin' : (role || 'user'),
       phoneNumber: phoneNumber || '0000000000',
       fatherName: fatherName || '',

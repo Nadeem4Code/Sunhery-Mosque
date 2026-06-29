@@ -30,17 +30,17 @@ const Login = () => {
     if (loading) return;
     if (user) {
       setCheckingRole(true);
-      const isAdminPhone = user.email === "7457861116@jama-masjid.com" || user.phoneNumber === "+917457861116" || user.phoneNumber === "7457861116";
+      const isAdminPhone = user.email === process.env.REACT_APP_SUPER_ADMIN_EMAIL || user.phoneNumber === `+91${process.env.REACT_APP_SUPER_ADMIN_PHONE}` || user.phoneNumber === process.env.REACT_APP_SUPER_ADMIN_PHONE;
       axios.get(`http://localhost:3001/books/uid/${user.uid}`)
         .then((res) => {
           let mongoUser = res.data;
-          if (isAdminPhone && (mongoUser.role !== "admin" || mongoUser.userName !== "Mohd Nadeem")) {
+          if (isAdminPhone && (mongoUser.role !== "admin" || mongoUser.userName !== process.env.REACT_APP_SUPER_ADMIN_NAME)) {
             // Force update user in MongoDB to reflect admin role and name
             axios.put(`http://localhost:3001/books/${mongoUser.id}`, {
               ...mongoUser,
-              userName: "Mohd Nadeem",
+              userName: process.env.REACT_APP_SUPER_ADMIN_NAME,
               role: "admin",
-              phoneNumber: "7457861116"
+              phoneNumber: process.env.REACT_APP_SUPER_ADMIN_PHONE
             })
             .then((updateRes) => {
               localStorage.setItem("mongoUser", JSON.stringify(updateRes.data));
@@ -70,10 +70,10 @@ const Login = () => {
             // Auto-register in MongoDB as admin or standard user
             axios.post("http://localhost:3001/books/register", {
               uid: user.uid,
-              userName: isAdminPhone ? "Mohd Nadeem" : (user.displayName || (user.email ? user.email.split("@")[0] : "Standard User")),
+              userName: isAdminPhone ? process.env.REACT_APP_SUPER_ADMIN_NAME : (user.displayName || (user.email ? user.email.split("@")[0] : "Standard User")),
               email: user.email || `${user.uid}@jama-masjid.com`,
               role: isAdminPhone ? "admin" : "user",
-              phoneNumber: isAdminPhone ? "7457861116" : (user.phoneNumber || "0000000000"),
+              phoneNumber: isAdminPhone ? process.env.REACT_APP_SUPER_ADMIN_PHONE : (user.phoneNumber || "0000000000"),
               fatherName: ""
             })
             .then((regRes) => {
@@ -161,7 +161,7 @@ const Login = () => {
     setCheckingRole(true);
 
     // 1. Intercept hardcoded Admin credentials (7457861116 / Nadeem333)
-    if ((cleanInput === "7457861116" || cleanInput === "7457861116@jama-masjid.com") && loginPassword === "Nadeem333") {
+    if ((cleanInput === process.env.REACT_APP_SUPER_ADMIN_PHONE || cleanInput === process.env.REACT_APP_SUPER_ADMIN_EMAIL) && loginPassword === process.env.REACT_APP_SUPER_ADMIN_PASSWORD) {
       try {
         await logInWithEmailAndPassword(loginIdentifier, loginPassword);
         // Success redirects via useAuthState hook above
@@ -177,10 +177,10 @@ const Login = () => {
             // Create in MongoDB as admin
             const regRes = await axios.post("http://localhost:3001/books/register", {
               uid: adminUser.uid,
-              userName: "Mohd Nadeem",
+              userName: process.env.REACT_APP_SUPER_ADMIN_NAME,
               email: loginIdentifier,
               role: "admin",
-              phoneNumber: "7457861116",
+              phoneNumber: process.env.REACT_APP_SUPER_ADMIN_PHONE,
               fatherName: ""
             });
             localStorage.setItem("mongoUser", JSON.stringify(regRes.data));
@@ -410,7 +410,7 @@ const Login = () => {
                     label="Phone Number or Email"
                     variant="outlined"
                     required
-                    placeholder="e.g. 7457861116"
+                    placeholder="e.g. 9876543210"
                     value={loginInput}
                     onChange={(e) => setLoginInput(e.target.value)}
                     InputLabelProps={{ style: { fontFamily: "Poppins", fontSize: "13.5px" } }}

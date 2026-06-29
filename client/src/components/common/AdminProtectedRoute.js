@@ -34,7 +34,7 @@ const AdminProtectedRoute = () => {
       return;
     }
 
-    const isAdminEmail = user.email === "7457861116@jama-masjid.com";
+    const isAdminEmail = user.email === process.env.REACT_APP_SUPER_ADMIN_EMAIL;
 
     // Check local storage for quick bypass
     const saved = localStorage.getItem("mongoUser");
@@ -49,12 +49,12 @@ const AdminProtectedRoute = () => {
           axios.get(`http://localhost:3001/books/uid/${user.uid}`)
             .then((res) => {
               let data = res.data;
-              if (isAdminEmail && (data.role !== "admin" || data.userName !== "Mohd Nadeem")) {
+              if (isAdminEmail && (data.role !== "admin" || data.userName !== process.env.REACT_APP_SUPER_ADMIN_NAME)) {
                 axios.put(`http://localhost:3001/books/${data.id}`, {
                   ...data,
-                  userName: "Mohd Nadeem",
+                  userName: process.env.REACT_APP_SUPER_ADMIN_NAME,
                   role: "admin",
-                  phoneNumber: "7457861116"
+                  phoneNumber: process.env.REACT_APP_SUPER_ADMIN_PHONE
                 }).then((putRes) => {
                   localStorage.setItem("mongoUser", JSON.stringify(putRes.data));
                 });
@@ -80,13 +80,13 @@ const AdminProtectedRoute = () => {
       .get(`http://localhost:3001/books/uid/${user.uid}`)
       .then((res) => {
         let data = res.data;
-        if (isAdminEmail && (data.role !== "admin" || data.userName !== "Mohd Nadeem")) {
+        if (isAdminEmail && (data.role !== "admin" || data.userName !== process.env.REACT_APP_SUPER_ADMIN_NAME)) {
           setIsAdmin(true);
           axios.put(`http://localhost:3001/books/${data.id}`, {
             ...data,
-            userName: "Mohd Nadeem",
+            userName: process.env.REACT_APP_SUPER_ADMIN_NAME,
             role: "admin",
-            phoneNumber: "7457861116"
+            phoneNumber: process.env.REACT_APP_SUPER_ADMIN_PHONE
           }).then((putRes) => {
             localStorage.setItem("mongoUser", JSON.stringify(putRes.data));
           });

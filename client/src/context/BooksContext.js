@@ -19,18 +19,18 @@ function Provider({ children }) {
     if (loading) return;
     if (user) {
       setMongoUserLoading(true);
-      const isAdminEmail = user.email === "7457861116@jama-masjid.com";
+      const isAdminEmail = user.email === process.env.REACT_APP_SUPER_ADMIN_EMAIL;
       axios
         .get(`http://localhost:3001/books/uid/${user.uid}`)
         .then((res) => {
           let data = res.data;
           // Force update in case role or userName is incorrect for admin
-          if (isAdminEmail && (data.role !== "admin" || data.userName !== "Mohd Nadeem")) {
+          if (isAdminEmail && (data.role !== "admin" || data.userName !== process.env.REACT_APP_SUPER_ADMIN_NAME)) {
             axios.put(`http://localhost:3001/books/${data.id}`, {
               ...data,
-              userName: "Mohd Nadeem",
+              userName: process.env.REACT_APP_SUPER_ADMIN_NAME,
               role: "admin",
-              phoneNumber: "7457861116"
+              phoneNumber: process.env.REACT_APP_SUPER_ADMIN_PHONE
             })
             .then((updateRes) => {
               setMongoUser(updateRes.data);
@@ -55,10 +55,10 @@ function Provider({ children }) {
             // Auto-register in MongoDB as admin or standard user
             const regData = {
               uid: user.uid,
-              userName: isAdminEmail ? "Mohd Nadeem" : (user.displayName || (user.email ? user.email.split("@")[0] : "Standard User")),
+              userName: isAdminEmail ? process.env.REACT_APP_SUPER_ADMIN_NAME : (user.displayName || (user.email ? user.email.split("@")[0] : "Standard User")),
               email: user.email || `${user.uid}@jama-masjid.com`,
               role: isAdminEmail ? "admin" : "user",
-              phoneNumber: isAdminEmail ? "7457861116" : (user.phoneNumber || "0000000000"),
+              phoneNumber: isAdminEmail ? process.env.REACT_APP_SUPER_ADMIN_PHONE : (user.phoneNumber || "0000000000"),
               fatherName: ""
             };
             axios.post("http://localhost:3001/books/register", regData)
