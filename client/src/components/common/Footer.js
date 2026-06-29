@@ -13,6 +13,7 @@ import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
 import ScheduleRoundedIcon from "@mui/icons-material/ScheduleRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 
 const colors = {
   primary: "#672CBC",
@@ -138,23 +139,32 @@ const Footer = () => {
           </Typography>
         </ButtonBase>
 
-        {/* Floating Center Action Button (quick shortcut to donate) */}
-        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", width: 64, position: "relative", top: -16, p: "4px", bgcolor: colors.background, borderRadius: "50%" }}>
-          <IconButton 
-            onClick={() => navigate("/donation")}
-            sx={{ 
-              width: 48, 
-              height: 48, 
-              bgcolor: colors.primary, 
-              color: "white", 
-              boxShadow: "0 4px 10px rgba(103, 44, 188, 0.2)",
-              border: `4px solid ${colors.background}`,
-              "&:hover": { bgcolor: colors.primaryContainer }
-            }}
-          >
-            <AddRoundedIcon sx={{ fontSize: "24px" }} />
-          </IconButton>
-        </Box>
+        {/* Floating Center Action Button (quick shortcut to donate or home) */}
+        {(() => {
+          const isDonationPage = location.pathname === "/donation";
+          return (
+            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", width: 64, position: "relative", top: -16, p: "4px", bgcolor: colors.background, borderRadius: "50%" }}>
+              <IconButton 
+                onClick={() => navigate(isDonationPage ? "/" : "/donation")}
+                sx={{ 
+                  width: 48, 
+                  height: 48, 
+                  bgcolor: isDonationPage ? "#5B21B6" : colors.primary, 
+                  color: "white", 
+                  boxShadow: isDonationPage ? "0 4px 14px rgba(91, 33, 182, 0.25)" : "0 4px 10px rgba(103, 44, 188, 0.2)",
+                  border: `4px solid ${colors.background}`,
+                  "&:hover": { bgcolor: isDonationPage ? "#4C1D95" : colors.primaryContainer }
+                }}
+              >
+                {isDonationPage ? (
+                  <HomeRoundedIcon sx={{ fontSize: "24px" }} />
+                ) : (
+                  <AddRoundedIcon sx={{ fontSize: "24px" }} />
+                )}
+              </IconButton>
+            </Box>
+          );
+        })()}
 
         {/* Prayers Tab */}
         <ButtonBase

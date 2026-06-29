@@ -11,12 +11,29 @@ import {
   InputAdornment,
   Tabs,
   Tab,
+  Stepper,
+  Step,
+  StepLabel,
+  Snackbar,
+  Alert,
 } from "@mui/material";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import LockIcon from "@mui/icons-material/Lock";
+import { 
+  Building2, 
+  HeartHandshake, 
+  ContactRound, 
+  Phone, 
+  IndianRupee, 
+  CreditCard, 
+  ShieldCheck, 
+  CheckCircle2, 
+  Receipt,
+  Heart,
+  ArrowLeft,
+  ArrowRight,
+  Lock,
+  Coins,
+  Wallet
+} from "lucide-react";
 import dayjs from "dayjs";
 import { jsPDF } from "jspdf";
 import axios from "axios";
@@ -35,8 +52,19 @@ const API_URL = "http://localhost:3001/books";
 // Helper function to load Razorpay SDK dynamically
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const existingScript = document.getElementById("razorpay-sdk");
+    if (existingScript) {
+      existingScript.onload = () => resolve(true);
+      existingScript.onerror = () => resolve(false);
+      return;
+    }
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.id = "razorpay-sdk";
     script.onload = () => resolve(true);
     script.onerror = () => resolve(false);
     document.body.appendChild(script);
@@ -46,7 +74,7 @@ const loadRazorpayScript = () => {
 const Donate = () => {
   // Wizard step state: 1 = Form Details, 2 = Account Setup, 3 = Receipt
   const [step, setStep] = useState(1);
-  const [activeAuthTab, setActiveAuthTab] = useState(0); // 0 = Register, 1 = Login
+  const [activeAuthTab, setActiveAuthTab] = useState(0); // 0 = Register, 1 = Login, 2 = Guest
 
   // Personal Info (Step 1)
   const [userName, setUserName] = useState("");
@@ -68,6 +96,15 @@ const Donate = () => {
   // Helper validation
   const [phoneError, setPhoneError] = useState(false);
   const [emailError, setEmailError] = useState(false);
+
+  // Snackbar Toast states
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const triggerError = (msg) => {
+    setErrorMessage(msg || "An unexpected error occurred. Please try again.");
+    setShowError(true);
+  };
 
   const pdfDownloadedRef = React.useRef("");
 
@@ -97,7 +134,7 @@ const Donate = () => {
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
-      doc.text("Sunheri Masjid, Contribution Portal", doc.internal.pageSize.width / 2, 25, { align: "center" });
+      doc.text("Sunheri Mosque, Contribution Portal", doc.internal.pageSize.width / 2, 25, { align: "center" });
 
       // Separator
       doc.setDrawColor(220, 220, 220);
@@ -190,6 +227,7 @@ const Donate = () => {
 
   // Sync details from current user if logged in
   useEffect(() => {
+    let isMounted = true;
     if (auth.currentUser) {
       // 1. Try to load from localStorage first for instant display
       const savedUser = localStorage.getItem("mongoUser");
@@ -208,6 +246,7 @@ const Donate = () => {
       // 2. Fetch fresh data from backend
       axios.get(`${API_URL}/uid/${auth.currentUser.uid}`)
         .then((res) => {
+          if (!isMounted) return;
           const u = res.data;
           if (u.userName) setUserName(u.userName);
           if (u.phoneNumber && u.phoneNumber !== "0000000000") setPhoneNumber(u.phoneNumber);
@@ -219,12 +258,16 @@ const Donate = () => {
         })
         .catch((err) => {
           console.error("Donate: Failed to fetch fresh user details", err);
+          if (!isMounted) return;
           if (!savedUser) {
             setUserName(auth.currentUser.displayName || "");
             setEmail(auth.currentUser.email || "");
           }
         });
     }
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handlePhoneChange = (e) => {
@@ -248,7 +291,7 @@ const Donate = () => {
     }
 
     if (!amount || Number(amount) <= 0) {
-      alert("Please enter a valid donation amount.");
+      triggerError("Please enter a valid donation amount.");
       return;
     }
 
@@ -282,7 +325,7 @@ const Donate = () => {
       await handlePaymentFlow(false);
     } catch (err) {
       console.error("Login failed", err);
-      alert(err.message || "Failed to login. Please check your credentials.");
+      triggerError(err.message || "Failed to login. Please check your credentials.");
       setIsProcessing(false);
     }
   };
@@ -291,7 +334,7 @@ const Donate = () => {
   const handleRegisterNext = async (e) => {
     e.preventDefault();
     if (phoneNumber.length !== 10) {
-      alert("Please enter a valid 10-digit phone number in Step 1.");
+      triggerError("Please enter a valid 10-digit phone number in Step 1.");
       setStep(1);
       return;
     }
@@ -306,7 +349,7 @@ const Donate = () => {
       await handlePaymentFlow(false);
     } catch (err) {
       console.error("Registration failed", err);
-      alert(err.message || "Failed to register. Please check your credentials.");
+      triggerError(err.message || "Failed to register. Please check your credentials.");
       setIsProcessing(false);
     }
   };
@@ -318,7 +361,7 @@ const Donate = () => {
     const scriptLoaded = await loadRazorpayScript();
     if (!scriptLoaded) {
       setIsProcessing(false);
-      alert("Failed to load payment gateway SDK. Please check your internet connection.");
+      triggerError("Failed to load payment gateway SDK. Please check your internet connection.");
       return;
     }
 
@@ -397,8 +440,8 @@ const Donate = () => {
         key: orderData.keyId,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: "Jama Masjid Donation",
-        description: `Contribution for ${purpose === "mosque" ? "Masjid Maintenance" : "Imam Fund"}`,
+        name: "Sunheri Mosque Donation",
+        description: `Contribution for ${purpose === "mosque" ? "Mosque Maintenance" : "Imam Fund"}`,
         image: logo,
         order_id: orderData.order_id,
         handler: async function (response) {
@@ -463,11 +506,11 @@ const Donate = () => {
 
               setStep(3); // Success Receipt
             } else {
-              alert("Payment verification failed. Please check with your bank or try again.");
+              triggerError("Payment verification failed. Please check with your bank or try again.");
             }
           } catch (error) {
             console.error("Donation recording/verification failed:", error);
-            alert("Payment was processed, but we failed to verify or record your transaction. Please email support with Payment ID: " + response.razorpay_payment_id);
+            triggerError("Payment was processed, but we failed to verify or record your transaction. Please email support with Payment ID: " + response.razorpay_payment_id);
           } finally {
             setIsProcessing(false);
           }
@@ -494,7 +537,7 @@ const Donate = () => {
       rzp.open();
     } catch (error) {
       console.error("Failed to initialize payment flow:", error);
-      alert("Failed to connect to payment gateway. Please check if the backend is running.");
+      triggerError("Failed to connect to payment gateway. Please check if the backend is running.");
       setIsProcessing(false);
     }
   };
@@ -504,79 +547,83 @@ const Donate = () => {
     return (
       <Box
         style={{
-          marginTop: "24px",
+          marginTop: "32px",
           display: "flex",
           justifyContent: "center",
           padding: "20px",
+          minHeight: "80vh",
         }}
       >
         <Card
           style={{
             maxWidth: "500px",
             width: "100%",
-            borderRadius: "20px",
-            boxShadow: "0 10px 40px rgba(0, 0, 0, 0.08)",
+            borderRadius: "24px",
+            boxShadow: "0 20px 50px rgba(91, 33, 182, 0.05)",
             background: "#ffffff",
             textAlign: "center",
-            padding: "24px",
-            border: "1px solid rgba(187, 196, 206, 0.35)",
+            padding: "32px 24px",
+            border: "1px solid #E2E8F0",
+            height: "fit-content",
           }}
         >
           <CardContent>
-            <CheckCircleOutlineIcon style={{ fontSize: "80px", color: "#4caf50" }} />
+            <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+              <CheckCircle2 size={72} color="#16A34A" strokeWidth={1.5} />
+            </Box>
             <Typography
               style={{
                 fontFamily: "Poppins",
-                fontWeight: "700",
-                fontSize: "26px",
-                color: "#1b5e20",
-                marginTop: "10px",
+                fontWeight: "800",
+                fontSize: "28px",
+                color: "#16A34A",
+                letterSpacing: "-0.5px"
               }}
             >
-              Donation Successful!
+              JazakAllah Khair!
             </Typography>
             <Typography
               style={{
                 fontFamily: "Poppins",
                 fontSize: "14px",
-                color: "#666",
-                marginTop: "5px",
+                color: "#64748B",
+                marginTop: "6px",
               }}
             >
-              May Allah reward you for your generous contribution.
+              Thank you for supporting Sunheri Mosque.
             </Typography>
 
             <Box
               style={{
-                marginTop: "30px",
-                backgroundColor: "#f9f9f9",
-                borderRadius: "15px",
-                padding: "20px",
+                marginTop: "32px",
+                backgroundColor: "#F8FAFC",
+                borderRadius: "16px",
+                padding: "24px",
                 textAlign: "left",
-                border: "1px dashed #ccc",
+                border: "1px dashed #E2E8F0",
               }}
             >
-              <Typography style={{ fontFamily: "Poppins", fontSize: "14px", color: "#444" }}>
-                <strong>Transaction ID:</strong> {receiptData.transactionId}
+              <Typography style={{ fontFamily: "Poppins", fontSize: "14px", color: "#1E293B" }}>
+                <strong>Reference ID:</strong> {receiptData.transactionId}
               </Typography>
-              <Typography style={{ fontFamily: "Poppins", fontSize: "14px", color: "#444", marginTop: "8px" }}>
+              <Typography style={{ fontFamily: "Poppins", fontSize: "14px", color: "#1E293B", marginTop: "10px" }}>
                 <strong>Donor Name:</strong> {receiptData.name}
               </Typography>
               {receiptData.fatherName && (
-                <Typography style={{ fontFamily: "Poppins", fontSize: "14px", color: "#444", marginTop: "8px" }}>
+                <Typography style={{ fontFamily: "Poppins", fontSize: "14px", color: "#1E293B", marginTop: "10px" }}>
                   <strong>Father's Name:</strong> {receiptData.fatherName}
                 </Typography>
               )}
-              <Typography style={{ fontFamily: "Poppins", fontSize: "14px", color: "#444", marginTop: "8px" }}>
+              <Typography style={{ fontFamily: "Poppins", fontSize: "14px", color: "#1E293B", marginTop: "10px" }}>
                 <strong>Phone Number:</strong> {receiptData.phone}
               </Typography>
-              <Typography style={{ fontFamily: "Poppins", fontSize: "14px", color: "#444", marginTop: "8px" }}>
-                <strong>Amount:</strong> ₹{receiptData.amount}
+              <Typography style={{ fontFamily: "Poppins", fontSize: "16px", color: "#5B21B6", marginTop: "12px", fontWeight: "700" }}>
+                <strong>Amount:</strong> ₹{Number(receiptData.amount).toLocaleString()}.00
               </Typography>
-              <Typography style={{ fontFamily: "Poppins", fontSize: "14px", color: "#444", marginTop: "8px" }}>
-                <strong>Purpose:</strong> For {receiptData.purpose === "mosque" ? "MOSQUE FUND" : "IMAM FUND"}
+              <Typography style={{ fontFamily: "Poppins", fontSize: "14px", color: "#1E293B", marginTop: "10px" }}>
+                <strong>Purpose:</strong> For {receiptData.purpose === "mosque" ? "MOSQUE MAINTENANCE" : "IMAM WELFARE"}
               </Typography>
-              <Typography style={{ fontFamily: "Poppins", fontSize: "14px", color: "#444", marginTop: "8px" }}>
+              <Typography style={{ fontFamily: "Poppins", fontSize: "14px", color: "#1E293B", marginTop: "10px" }}>
                 <strong>Date & Time:</strong> {receiptData.date}
               </Typography>
               {receiptData.accountCreated && (
@@ -584,11 +631,11 @@ const Donate = () => {
                   style={{
                     fontFamily: "Poppins",
                     fontSize: "13px",
-                    color: "#2e7d32",
-                    backgroundColor: "#e8f5e9",
-                    padding: "8px",
-                    borderRadius: "5px",
-                    marginTop: "15px",
+                    color: "#16A34A",
+                    backgroundColor: "#DCFCE7",
+                    padding: "10px",
+                    borderRadius: "8px",
+                    marginTop: "16px",
                     fontWeight: "600",
                     textAlign: "center",
                   }}
@@ -598,21 +645,27 @@ const Donate = () => {
               )}
             </Box>
 
-            <Box style={{ display: "flex", justifyContent: "center", gap: "16px", marginTop: "30px" }}>
+            <Box style={{ display: "flex", justifyContent: "center", gap: "16px", marginTop: "32px" }}>
               <Button
                 variant="outlined"
                 onClick={() => downloadPDFReceipt(receiptData)}
-                style={{
-                  borderColor: "#672CBC",
-                  color: "#672CBC",
+                sx={{
+                  borderColor: "#5B21B6",
+                  color: "#5B21B6",
                   borderRadius: "12px",
                   textTransform: "none",
-                  fontSize: "15px",
-                  fontWeight: "600",
-                  padding: "10px 24px",
+                  fontSize: "14px",
+                  fontWeight: "700",
+                  padding: "12px 24px",
+                  borderWidth: "1.5px",
+                  "&:hover": {
+                    borderColor: "#5B21B6",
+                    borderWidth: "1.5px",
+                    bgcolor: "rgba(91, 33, 182, 0.04)",
+                  }
                 }}
               >
-                Download PDF
+                Download Receipt
               </Button>
               <Button
                 variant="contained"
@@ -620,16 +673,19 @@ const Donate = () => {
                   setStep(1);
                   setReceiptData(null);
                 }}
-                style={{
-                  background: "linear-gradient(135deg, #672CBC 0%, #9055FF 100%)",
+                sx={{
+                  background: "linear-gradient(135deg, #5B21B6 0%, #7C3AED 100%)",
                   borderRadius: "12px",
                   textTransform: "none",
-                  fontSize: "15px",
-                  fontWeight: "600",
-                  padding: "10px 24px",
+                  fontSize: "14px",
+                  fontWeight: "700",
+                  padding: "12px 24px",
                   boxShadow: "none",
+                  "&:hover": {
+                    background: "linear-gradient(135deg, #4C1D95 0%, #6D28D9 100%)",
+                  }
                 }}
-                startIcon={<ArrowBackIcon />}
+                startIcon={<ArrowLeft size={16} />}
               >
                 Donate Again
               </Button>
@@ -643,43 +699,87 @@ const Donate = () => {
   return (
     <Box
       style={{
-        marginTop: "24px",
+        marginTop: "32px",
         display: "flex",
         justifyContent: "center",
-        padding: "20px",
-        background: "linear-gradient(180deg, #F9F9FB 0%, #F1EEF6 100%)",
-        minHeight: "85vh",
+        padding: "24px 16px",
+        background: "radial-gradient(circle at top, #FFFFFF 0%, #F1EEF6 100%)",
+        minHeight: "90vh",
       }}
     >
       <Card
         style={{
           maxWidth: "600px",
           width: "100%",
-          borderRadius: "24px",
-          boxShadow: "0 15px 35px rgba(103, 44, 188, 0.05)",
+          borderRadius: "28px",
+          boxShadow: "0 30px 60px rgba(91, 33, 182, 0.04), 0 2px 10px rgba(0, 0, 0, 0.01)",
           overflow: "hidden",
-          border: "1px solid rgba(187, 196, 206, 0.35)",
+          border: "1px solid #E2E8F0",
+          backgroundColor: "#ffffff",
+          height: "fit-content",
         }}
       >
-        {/* Header Block */}
+        {/* Welcoming Hero Section */}
         <Box
           style={{
-            background: "linear-gradient(135deg, #672CBC 0%, #9055FF 100%)",
+            background: "linear-gradient(180deg, #5B21B6 0%, #7C3AED 60%, #F8FAFC 100%)",
             color: "#ffffff",
-            padding: "26px 20px",
+            padding: "40px 20px",
             textAlign: "center",
           }}
         >
-          <FavoriteIcon style={{ fontSize: "36px", marginBottom: "8px" }} />
-          <Typography style={{ fontFamily: "Poppins", fontWeight: "700", fontSize: "22px" }}>
-            Masjid Contribution Portal
+          <Typography style={{ fontSize: "48px", marginBottom: "8px", lineHeight: 1 }}>🕌</Typography>
+          <Typography style={{ fontFamily: "Poppins", fontWeight: "800", fontSize: "28px", color: "#ffffff", letterSpacing: "-0.5px" }}>
+            Support Your Masjid
           </Typography>
-          <Typography style={{ fontFamily: "Poppins", fontSize: "13px", opacity: 0.9 }}>
-            {step === 1 ? "Step 1: Fill Donation Details" : "Step 2: Choose Checkout Account"}
+          <Typography style={{ fontFamily: "Poppins", fontSize: "14px", opacity: 0.9, marginTop: "8px", maxWidth: "450px", marginLeft: "auto", marginRight: "auto" }}>
+            Every contribution helps maintain the mosque and supports the Imam.
           </Typography>
+          <Box sx={{ mt: 3, display: "flex", justifyContent: "center", gap: "16px", flexWrap: "wrap" }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <ShieldCheck size={14} color="#16A34A" />
+              <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "600", letterSpacing: "0.5px", color: "#ffffff" }}>
+                SECURE
+              </Typography>
+            </Box>
+            <Typography sx={{ color: "rgba(255,255,255,0.4)", fontSize: "12px" }}>•</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <Receipt size={14} color="#16A34A" />
+              <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "600", letterSpacing: "0.5px", color: "#ffffff" }}>
+                TRANSPARENT
+              </Typography>
+            </Box>
+            <Typography sx={{ color: "rgba(255,255,255,0.4)", fontSize: "12px" }}>•</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <Heart size={14} color="#16A34A" />
+              <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "600", letterSpacing: "0.5px", color: "#ffffff" }}>
+                TRUSTED
+              </Typography>
+            </Box>
+          </Box>
         </Box>
 
         <CardContent style={{ padding: "28px" }}>
+          {/* Stepper Progress Indicator */}
+          <Box mb={4}>
+            <Stepper 
+              activeStep={step - 1} 
+              alternativeLabel
+              sx={{
+                "& .MuiStepIcon-root.Mui-active": { color: "#5B21B6" },
+                "& .MuiStepIcon-root.Mui-completed": { color: "#16A34A" },
+                "& .MuiStepLabel-label": { fontFamily: "Poppins", fontSize: "12px", fontWeight: "500" },
+                "& .MuiStepLabel-label.Mui-active": { color: "#5B21B6", fontWeight: "600" }
+              }}
+            >
+              {["Donation", "Payment", "Success"].map((label) => (
+                <Step key={label}>
+                  <StepLabel>{label}</StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+          </Box>
+
           {isProcessing ? (
             <Box style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "50px 0" }}>
               <CircularProgress size={50} style={{ color: "#672CBC" }} />
@@ -696,17 +796,17 @@ const Donate = () => {
               {step === 1 && (
                 <form onSubmit={handleStep1Next}>
                   {/* Purpose Selection Cards */}
-                  <Box mb={3.5}>
+                  <Box mb={4}>
                     <Typography
                       style={{
                         fontFamily: "Poppins",
                         fontWeight: "600",
-                        fontSize: "14px",
-                        color: "#240F4F",
-                        marginBottom: "12px",
+                        fontSize: "15px",
+                        color: "#1E293B",
+                        marginBottom: "16px",
                       }}
                     >
-                      Select Donation Purpose
+                      Choose Fund
                     </Typography>
 
                     <Grid container spacing={2}>
@@ -714,26 +814,33 @@ const Donate = () => {
                         <Card
                           onClick={() => setPurpose("mosque")}
                           sx={{
-                            border: purpose === "mosque" ? "2px solid #863ED5" : "2px solid rgba(0,0,0,0.06)",
-                            borderRadius: "12px",
+                            border: purpose === "mosque" ? "2px solid #5B21B6" : "2px solid #E2E8F0",
+                            borderRadius: "16px",
                             cursor: "pointer",
-                            transition: "all 0.3s ease",
+                            transition: "all 0.25s ease",
                             transform: purpose === "mosque" ? "scale(1.02)" : "scale(1)",
-                            backgroundColor: purpose === "mosque" ? "rgba(134, 62, 213, 0.04)" : "#fff",
-                            boxShadow: "none",
+                            backgroundColor: purpose === "mosque" ? "#F5F3FF" : "#ffffff",
+                            boxShadow: purpose === "mosque" ? "0 4px 20px rgba(91, 33, 182, 0.08)" : "none",
                             "&:hover": {
-                              borderColor: "#863ED5",
+                              borderColor: "#5B21B6",
+                              backgroundColor: "#F5F3FF",
                             }
                           }}
                         >
-                          <CardContent sx={{ textAlign: "center", p: 2, "&:last-child": { pb: 2 } }}>
-                            <Typography sx={{ fontSize: "32px", mb: 0.5 }}>🕌</Typography>
-                            <Typography sx={{ fontFamily: "Poppins", fontWeight: "700", fontSize: "13.5px", color: "#240F4F" }}>
-                              Masjid Fund
+                          <CardContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", p: 3, "&:last-child": { pb: 3 } }}>
+                            <Box sx={{ mb: 2, display: "flex", justifyContent: "center", alignItems: "center", width: 64, height: 64, borderRadius: "50%", bgcolor: purpose === "mosque" ? "#EDE9FE" : "#F8FAFC" }}>
+                              <Building2 size={32} color={purpose === "mosque" ? "#5B21B6" : "#64748B"} />
+                            </Box>
+                            <Typography sx={{ fontFamily: "Poppins", fontWeight: "700", fontSize: "15px", color: "#1E293B" }}>
+                              Mosque Fund
                             </Typography>
-                            <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", color: "#8789A3", mt: 0.5 }}>
-                              Maintenance & Bills
-                            </Typography>
+                            
+                            {purpose === "mosque" && (
+                              <Box sx={{ mt: 1.5, display: "flex", alignItems: "center", gap: 0.5, bgcolor: "#16A34A", color: "#ffffff", px: 1.5, py: 0.25, borderRadius: "50px" }}>
+                                <CheckCircle2 size={10} color="#ffffff" />
+                                <Typography sx={{ fontSize: "9px", fontWeight: "700", fontFamily: "Poppins" }}>Selected</Typography>
+                              </Box>
+                            )}
                           </CardContent>
                         </Card>
                       </Grid>
@@ -742,26 +849,33 @@ const Donate = () => {
                         <Card
                           onClick={() => setPurpose("imam")}
                           sx={{
-                            border: purpose === "imam" ? "2px solid #863ED5" : "2px solid rgba(0,0,0,0.06)",
-                            borderRadius: "12px",
+                            border: purpose === "imam" ? "2px solid #5B21B6" : "2px solid #E2E8F0",
+                            borderRadius: "16px",
                             cursor: "pointer",
-                            transition: "all 0.3s ease",
+                            transition: "all 0.25s ease",
                             transform: purpose === "imam" ? "scale(1.02)" : "scale(1)",
-                            backgroundColor: purpose === "imam" ? "rgba(134, 62, 213, 0.04)" : "#fff",
-                            boxShadow: "none",
+                            backgroundColor: purpose === "imam" ? "#F5F3FF" : "#ffffff",
+                            boxShadow: purpose === "imam" ? "0 4px 20px rgba(91, 33, 182, 0.08)" : "none",
                             "&:hover": {
-                              borderColor: "#863ED5",
+                              borderColor: "#5B21B6",
+                              backgroundColor: "#F5F3FF",
                             }
                           }}
                         >
-                          <CardContent sx={{ textAlign: "center", p: 2, "&:last-child": { pb: 2 } }}>
-                            <Typography sx={{ fontSize: "32px", mb: 0.5 }}>👳</Typography>
-                            <Typography sx={{ fontFamily: "Poppins", fontWeight: "700", fontSize: "13.5px", color: "#240F4F" }}>
-                              Imam Fund
+                          <CardContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", p: 3, "&:last-child": { pb: 3 } }}>
+                            <Box sx={{ mb: 2, display: "flex", justifyContent: "center", alignItems: "center", width: 64, height: 64, borderRadius: "50%", bgcolor: purpose === "imam" ? "#EDE9FE" : "#F8FAFC" }}>
+                              <HeartHandshake size={32} color={purpose === "imam" ? "#5B21B6" : "#64748B"} />
+                            </Box>
+                            <Typography sx={{ fontFamily: "Poppins", fontWeight: "700", fontSize: "15px", color: "#1E293B" }}>
+                              Imam Support
                             </Typography>
-                            <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", color: "#8789A3", mt: 0.5 }}>
-                              Salaries & Welfare
-                            </Typography>
+                           
+                            {purpose === "imam" && (
+                              <Box sx={{ mt: 1.5, display: "flex", alignItems: "center", gap: 0.5, bgcolor: "#16A34A", color: "#ffffff", px: 1.5, py: 0.25, borderRadius: "50px" }}>
+                                <CheckCircle2 size={10} color="#ffffff" />
+                                <Typography sx={{ fontSize: "9px", fontWeight: "700", fontFamily: "Poppins" }}>Selected</Typography>
+                              </Box>
+                            )}
                           </CardContent>
                         </Card>
                       </Grid>
@@ -769,22 +883,22 @@ const Donate = () => {
                   </Box>
 
                   {/* Personal Information */}
-                  <Box mb={3.5}>
+                  <Box mb={4}>
                     <Typography
                       style={{
                         fontFamily: "Poppins",
                         fontWeight: "600",
-                        fontSize: "14px",
-                        color: "#672CBC",
-                        marginBottom: "15px",
+                        fontSize: "15px",
+                        color: "#5B21B6",
+                        marginBottom: "18px",
                         display: "flex",
                         alignItems: "center",
                       }}
                     >
-                      <AccountCircleIcon style={{ marginRight: "8px", fontSize: "20px" }} /> Personal Information
+                      <ContactRound style={{ marginRight: "8px" }} size={20} /> Donor Information
                     </Typography>
 
-                    <Grid container spacing={2}>
+                    <Grid container spacing={3}>
                       <Grid item xs={12}>
                         <TextField
                           fullWidth
@@ -793,8 +907,21 @@ const Donate = () => {
                           required
                           value={userName}
                           onChange={(e) => setUserName(e.target.value)}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <ContactRound size={18} color="#64748B" />
+                              </InputAdornment>
+                            ),
+                          }}
                           InputLabelProps={{ style: { fontFamily: "Poppins", fontSize: "13.5px" } }}
-                          inputProps={{ style: { fontFamily: "Poppins", fontSize: "14px" } }}
+                          inputProps={{ style: { fontFamily: "Poppins", fontSize: "14.5px" } }}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: "12px",
+                              "&.Mui-focused fieldset": { borderColor: "#5B21B6" }
+                            }
+                          }}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -804,8 +931,21 @@ const Donate = () => {
                           variant="outlined"
                           value={fatherName}
                           onChange={(e) => setFatherName(e.target.value)}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <ContactRound size={18} color="#64748B" />
+                              </InputAdornment>
+                            ),
+                          }}
                           InputLabelProps={{ style: { fontFamily: "Poppins", fontSize: "13.5px" } }}
-                          inputProps={{ style: { fontFamily: "Poppins", fontSize: "14px" } }}
+                          inputProps={{ style: { fontFamily: "Poppins", fontSize: "14.5px" } }}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: "12px",
+                              "&.Mui-focused fieldset": { borderColor: "#5B21B6" }
+                            }
+                          }}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -819,8 +959,22 @@ const Donate = () => {
                           onChange={handlePhoneChange}
                           error={phoneError}
                           helperText={phoneError ? "Must be a 10-digit number" : ""}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <Phone size={18} color="#64748B" />
+                                <Typography sx={{ ml: 1, mr: 0.5, fontSize: "14px", color: "#64748B", fontFamily: "Poppins", fontWeight: "600" }}>+91</Typography>
+                              </InputAdornment>
+                            ),
+                          }}
                           InputLabelProps={{ style: { fontFamily: "Poppins", fontSize: "13.5px" } }}
-                          inputProps={{ style: { fontFamily: "Poppins", fontSize: "14px" } }}
+                          inputProps={{ style: { fontFamily: "Poppins", fontSize: "14.5px" } }}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              borderRadius: "12px",
+                              "&.Mui-focused fieldset": { borderColor: "#5B21B6" }
+                            }
+                          }}
                         />
                       </Grid>
                     </Grid>
@@ -832,12 +986,14 @@ const Donate = () => {
                       style={{
                         fontFamily: "Poppins",
                         fontWeight: "600",
-                        fontSize: "14px",
-                        color: "#672CBC",
+                        fontSize: "15px",
+                        color: "#5B21B6",
                         marginBottom: "12px",
+                        display: "flex",
+                        alignItems: "center",
                       }}
                     >
-                      Donation Amount (INR)
+                      <Coins style={{ marginRight: "8px" }} size={20} /> Donation Amount (INR)
                     </Typography>
                     <TextField
                       fullWidth
@@ -848,34 +1004,74 @@ const Donate = () => {
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                       InputProps={{
-                        startAdornment: <InputAdornment position="start">₹</InputAdornment>,
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <IndianRupee size={18} color="#64748B" />
+                          </InputAdornment>
+                        ),
                       }}
                       InputLabelProps={{ style: { fontFamily: "Poppins", fontSize: "13.5px" } }}
                       inputProps={{ style: { fontFamily: "Poppins", fontSize: "15px", min: 1 } }}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "12px",
+                          "&.Mui-focused fieldset": { borderColor: "#5B21B6" }
+                        }
+                      }}
                     />
-                    <Box mt={1.5} style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                      {["500", "1000", "2000", "5000", "10000"].map((preset) => (
-                        <Button
-                          key={preset}
-                          variant="outlined"
-                          size="small"
-                          onClick={() => handleQuickAmount(preset)}
-                          sx={{
-                            fontFamily: "Poppins",
-                            color: "#672CBC",
-                            borderColor: "rgba(103, 44, 188, 0.3)",
-                            textTransform: "none",
-                            borderRadius: "8px",
-                            fontSize: "12px",
-                            "&:hover": {
-                              borderColor: "#672CBC",
-                              backgroundColor: "#f1eef6",
-                            },
-                          }}
-                        >
-                          + ₹{Number(preset).toLocaleString()}
-                        </Button>
-                      ))}
+                    
+                    {/* Quick Amount Pill Buttons */}
+                    <Box mt={2} style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                      {["500", "1000", "2000", "5000", "10000"].map((preset) => {
+                        const isSelected = amount === preset;
+                        return (
+                          <Button
+                            key={preset}
+                            variant={isSelected ? "contained" : "outlined"}
+                            size="small"
+                            onClick={() => handleQuickAmount(preset)}
+                            sx={{
+                              fontFamily: "Poppins",
+                              fontWeight: "600",
+                              textTransform: "none",
+                              borderRadius: "50px",
+                              fontSize: "13px",
+                              px: 2.5,
+                              py: 0.75,
+                              borderColor: "#5B21B6",
+                              color: isSelected ? "#ffffff" : "#5B21B6",
+                              backgroundColor: isSelected ? "#5B21B6" : "transparent",
+                              "&:hover": {
+                                borderColor: "#5B21B6",
+                                backgroundColor: isSelected ? "#4C1D95" : "rgba(91, 33, 182, 0.08)",
+                              },
+                            }}
+                          >
+                            ₹{Number(preset).toLocaleString()}
+                          </Button>
+                        );
+                      })}
+                    </Box>
+
+                    {/* Donation Impact Guide */}
+                    <Box sx={{ mt: 3, p: 2.5, bgcolor: "#F8FAFC", borderRadius: "16px", border: "1px dashed #E2E8F0" }}>
+                      <Typography sx={{ fontFamily: "Poppins", fontSize: "12.5px", fontWeight: "700", color: "#5B21B6", mb: 1, letterSpacing: "0.2px" }}>
+                        DONATION IMPACT
+                      </Typography>
+                      <Grid container spacing={1}>
+                        <Grid item xs={6}>
+                          <Typography sx={{ fontFamily: "Poppins", fontSize: "12px", color: "#64748B" }}><strong>₹500:</strong> Daily Cleaning & Maintenance</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Typography sx={{ fontFamily: "Poppins", fontSize: "12px", color: "#64748B" }}><strong>₹1,000:</strong> Mosque Utility Bills</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Typography sx={{ fontFamily: "Poppins", fontSize: "12px", color: "#64748B", mt: 0.5 }}><strong>₹5,000:</strong> Clean Water Supplies</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Typography sx={{ fontFamily: "Poppins", fontSize: "12px", color: "#64748B", mt: 0.5 }}><strong>₹10,000:</strong> Imam Salary Support</Typography>
+                        </Grid>
+                      </Grid>
                     </Box>
                   </Box>
 
@@ -884,19 +1080,51 @@ const Donate = () => {
                     type="submit"
                     fullWidth
                     variant="contained"
-                    style={{
-                      background: "linear-gradient(135deg, #672CBC 0%, #9055FF 100%)",
+                    sx={{
+                      background: "linear-gradient(135deg, #5B21B6 0%, #7C3AED 100%)",
                       fontFamily: "Poppins",
-                      fontWeight: "600",
+                      fontWeight: "700",
                       fontSize: "16px",
-                      padding: "12px",
+                      padding: "14px",
                       borderRadius: "14px",
                       textTransform: "none",
-                      boxShadow: "none",
+                      boxShadow: "0 4px 14px rgba(91, 33, 182, 0.15)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 1,
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        background: "linear-gradient(135deg, #4C1D95 0%, #6D28D9 100%)",
+                        boxShadow: "0 10px 30px rgba(91, 33, 182, 0.25)",
+                        transform: "translateY(-1px)",
+                      }
                     }}
                   >
-                    Next: Proceed to Payment
+                    Proceed Securely <ArrowRight size={18} />
                   </Button>
+
+                  {/* Trust Signals Footer */}
+                  <Box sx={{ mt: 3, display: "flex", justifyContent: "space-around", borderTop: "1px solid #E2E8F0", pt: 2.5 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                      <ShieldCheck size={16} color="#16A34A" />
+                      <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "600", color: "#64748B" }}>
+                        100% Secure Payments
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                      <Receipt size={16} color="#16A34A" />
+                      <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "600", color: "#64748B" }}>
+                        Transparent Records
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                      <Heart size={16} color="#16A34A" />
+                      <Typography sx={{ fontFamily: "Poppins", fontSize: "11px", fontWeight: "600", color: "#64748B" }}>
+                        JazakAllah Khair
+                      </Typography>
+                    </Box>
+                  </Box>
                 </form>
               )}
 
@@ -905,12 +1133,14 @@ const Donate = () => {
                 <Box>
                   <Button
                     onClick={() => setStep(1)}
-                    startIcon={<ArrowBackIcon />}
+                    startIcon={<ArrowLeft size={16} />}
                     sx={{
                       textTransform: "none",
-                      color: "#672CBC",
+                      color: "#5B21B6",
                       fontFamily: "Poppins",
-                      mb: 2,
+                      fontWeight: "600",
+                      mb: 2.5,
+                      "&:hover": { bgcolor: "rgba(91, 33, 182, 0.04)" }
                     }}
                   >
                     Back to details
@@ -919,7 +1149,7 @@ const Donate = () => {
                   <Card 
                     sx={{ 
                       boxShadow: "none", 
-                      border: "1px solid rgba(187, 196, 206, 0.35)",
+                      border: "1px solid #E2E8F0",
                       borderRadius: "16px",
                       overflow: "hidden",
                       mb: 3,
@@ -934,19 +1164,21 @@ const Donate = () => {
                         "& .MuiTab-root": {
                           fontFamily: "Poppins",
                           fontWeight: "600",
-                          fontSize: "13px",
-                          color: "#240F4F",
+                          fontSize: "12px",
+                          color: "#1E293B",
+                          px: 1,
                         },
                         "& .Mui-selected": {
-                          color: "#672CBC !important",
+                          color: "#5B21B6 !important",
                         },
                         "& .MuiTabs-indicator": {
-                          backgroundColor: "#672CBC",
+                          backgroundColor: "#5B21B6",
                         }
                       }}
                     >
                       <Tab label="Create Account" />
                       <Tab label="Sign In" />
+                      <Tab label="Donate as Guest" />
                     </Tabs>
 
                     <CardContent sx={{ p: 3 }}>
@@ -986,23 +1218,26 @@ const Donate = () => {
                             type="submit"
                             fullWidth
                             variant="contained"
-                            style={{
-                              background: "linear-gradient(135deg, #672CBC 0%, #9055FF 100%)",
+                            sx={{
+                              background: "linear-gradient(135deg, #5B21B6 0%, #7C3AED 100%)",
                               fontFamily: "Poppins",
                               fontWeight: "600",
                               fontSize: "15px",
-                              padding: "10px",
-                              borderRadius: "10px",
+                              padding: "12px",
+                              borderRadius: "12px",
                               textTransform: "none",
                               marginTop: "20px",
                               boxShadow: "none",
+                              "&:hover": {
+                                background: "linear-gradient(135deg, #4C1D95 0%, #6D28D9 100%)",
+                              }
                             }}
-                            startIcon={<LockIcon />}
+                            startIcon={<Lock size={16} />}
                           >
                             Sign Up & Pay ₹{Number(amount).toLocaleString()}
                           </Button>
                         </form>
-                      ) : (
+                      ) : activeAuthTab === 1 ? (
                         /* Login Panel */
                         <form onSubmit={handleLoginNext}>
                           <Typography sx={{ fontFamily: "Poppins", fontSize: "12.5px", color: "#8789A3", mb: 2.5 }}>
@@ -1044,33 +1279,91 @@ const Donate = () => {
                             type="submit"
                             fullWidth
                             variant="contained"
-                            style={{
-                              background: "linear-gradient(135deg, #672CBC 0%, #9055FF 100%)",
+                            sx={{
+                              background: "linear-gradient(135deg, #5B21B6 0%, #7C3AED 100%)",
                               fontFamily: "Poppins",
                               fontWeight: "600",
                               fontSize: "15px",
-                              padding: "10px",
-                              borderRadius: "10px",
+                              padding: "12px",
+                              borderRadius: "12px",
                               textTransform: "none",
                               marginTop: "20px",
                               boxShadow: "none",
+                              "&:hover": {
+                                background: "linear-gradient(135deg, #4C1D95 0%, #6D28D9 100%)",
+                              }
                             }}
-                            startIcon={<LockIcon />}
+                            startIcon={<Lock size={16} />}
                           >
                             Sign In & Pay ₹{Number(amount).toLocaleString()}
                           </Button>
                         </form>
+                      ) : (
+                        /* Guest Checkout Panel */
+                        <Box sx={{ py: 1, textAlign: "center" }}>
+                          <Typography sx={{ fontFamily: "Poppins", fontSize: "13px", color: "#8789A3", mb: 3 }}>
+                            No registration required. You can make a contribution directly. Please note that guest donations will not be linked to a persistent profile history.
+                          </Typography>
+                          
+                          <Button
+                            onClick={() => handlePaymentFlow(false)}
+                            fullWidth
+                            variant="contained"
+                            sx={{
+                              background: "linear-gradient(135deg, #5B21B6 0%, #7C3AED 100%)",
+                              fontFamily: "Poppins",
+                              fontWeight: "700",
+                              fontSize: "15px",
+                              padding: "14px",
+                              borderRadius: "12px",
+                              textTransform: "none",
+                              boxShadow: "0 4px 14px rgba(91, 33, 182, 0.15)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: 1,
+                              transition: "all 0.2s ease",
+                              "&:hover": {
+                                background: "linear-gradient(135deg, #4C1D95 0%, #6D28D9 100%)",
+                                boxShadow: "0 10px 30px rgba(91, 33, 182, 0.25)",
+                                transform: "translateY(-1px)",
+                              }
+                            }}
+                          >
+                            Pay ₹{Number(amount).toLocaleString()} as Guest <ArrowRight size={18} />
+                          </Button>
+                        </Box>
                       )}
                     </CardContent>
                   </Card>
-
-
                 </Box>
               )}
             </>
           )}
         </CardContent>
       </Card>
+
+      {/* Custom Snackbar for inline notifications */}
+      <Snackbar
+        open={showError}
+        autoHideDuration={6000}
+        onClose={() => setShowError(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert 
+          onClose={() => setShowError(false)} 
+          severity="error" 
+          sx={{ 
+            width: "100%", 
+            fontFamily: "Poppins", 
+            fontSize: "13.5px",
+            borderRadius: "10px",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.1)"
+          }}
+        >
+          {errorMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
