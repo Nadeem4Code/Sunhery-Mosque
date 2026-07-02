@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useContext } from "react";
 import { 
   Grid, 
   Card, 
@@ -22,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "../../config/firebase";
 import axios from "axios";
+import UserContext from "../../context/BooksContext";
 
 // Icons from @mui/icons-material
 import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
@@ -152,6 +153,12 @@ const typography = {
 
 const Dashboard = () => {
   const [user, loading] = useAuthState(auth);
+  const { mongoUser } = useContext(UserContext);
+
+  const isSuperAdmin = mongoUser && (
+    mongoUser.email === process.env.REACT_APP_SUPER_ADMIN_EMAIL ||
+    mongoUser.phoneNumber === process.env.REACT_APP_SUPER_ADMIN_PHONE
+  );
   const [checkingRole, setCheckingRole] = useState(true);
   const [users, setUsers] = useState([]);
   const [expenditures, setExpenditures] = useState([]);
@@ -477,8 +484,13 @@ const Dashboard = () => {
             <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: colors.secondary }} />
-                <Typography sx={{ ...typography.labelMd, color: colors.onSurfaceVariant }}>
-                  Welcome back, Mohd Nadeem
+                <Typography sx={{ ...typography.labelMd, color: colors.onSurfaceVariant, display: "flex", alignItems: "center" }}>
+                  Welcome back, {mongoUser ? mongoUser.userName : "Admin User"}
+                  {isSuperAdmin && (
+                    <Box component="span" sx={{ bgcolor: "#FFE600", color: "#000000", px: 0.8, py: 0.2, borderRadius: "4px", fontSize: "10px", fontWeight: "800", ml: 1.5, fontFamily: "Inter" }}>
+                      SUPER ADMIN
+                    </Box>
+                  )}
                 </Typography>
               </Box>
               <Typography sx={{ ...typography.displayLg, color: colors.primary, fontSize: { xs: "32px", md: "48px" } }}>
@@ -548,9 +560,11 @@ const Dashboard = () => {
                 <MenuItem onClick={() => { handleNewEntryMenuClose(); window.dispatchEvent(new CustomEvent("open-add-user")); }} sx={{ fontFamily: "Inter", fontSize: "13.5px", py: 1, borderRadius: "6px" }}>
                   Register Donor
                 </MenuItem>
-                <MenuItem onClick={() => { handleNewEntryMenuClose(); window.dispatchEvent(new CustomEvent("open-add-admin")); }} sx={{ fontFamily: "Inter", fontSize: "13.5px", py: 1, borderRadius: "6px" }}>
-                  Add Administrator
-                </MenuItem>
+                {isSuperAdmin && (
+                  <MenuItem onClick={() => { handleNewEntryMenuClose(); window.dispatchEvent(new CustomEvent("open-add-admin")); }} sx={{ fontFamily: "Inter", fontSize: "13.5px", py: 1, borderRadius: "6px" }}>
+                    Add Administrator
+                  </MenuItem>
+                )}
                 <MenuItem onClick={() => { handleNewEntryMenuClose(); window.dispatchEvent(new CustomEvent("open-add-expenditure")); }} sx={{ fontFamily: "Inter", fontSize: "13.5px", py: 1, borderRadius: "6px" }}>
                   Log Expenditure
                 </MenuItem>

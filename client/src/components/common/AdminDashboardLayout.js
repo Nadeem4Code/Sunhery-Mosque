@@ -32,6 +32,7 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import ManageAccountsRoundedIcon from "@mui/icons-material/ManageAccountsRounded";
 import ExitToAppRoundedIcon from "@mui/icons-material/ExitToAppRounded";
+import SupervisorAccountRoundedIcon from "@mui/icons-material/SupervisorAccountRounded";
 
 // Dialog Components
 import AddUser from "../../pages/admin/AddUser";
@@ -225,6 +226,11 @@ const AdminDashboardLayout = () => {
   const [user, loading] = useAuthState(auth);
   const [mongoUser, setMongoUser] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const isSuperAdmin = mongoUser && (
+    mongoUser.email === process.env.REACT_APP_SUPER_ADMIN_EMAIL ||
+    mongoUser.phoneNumber === process.env.REACT_APP_SUPER_ADMIN_PHONE
+  );
   const [anchorElProfile, setAnchorElProfile] = useState(null);
   
   // Hoisted Dialog Open States
@@ -334,6 +340,7 @@ const AdminDashboardLayout = () => {
 
   const menuItems = [
     { text: "Dashboard", path: "/dashboard", icon: <DashboardRoundedIcon sx={{ fontSize: "20px" }} /> },
+    ...(isSuperAdmin ? [{ text: "Manage Admins", path: "/manage-admins", icon: <SupervisorAccountRoundedIcon sx={{ fontSize: "20px" }} /> }] : []),
     { text: "Finance", path: "/showUserForMosqueAdmin", icon: <PaymentsRoundedIcon sx={{ fontSize: "20px" }} /> },
     { text: "Donors", path: "/showUser", icon: <GroupRoundedIcon sx={{ fontSize: "20px" }} /> },
     { text: "Imams", path: "/showUserForImamAdmin", icon: <ManageAccountsRoundedIcon sx={{ fontSize: "20px" }} /> },
@@ -624,6 +631,22 @@ const AdminDashboardLayout = () => {
           transformOrigin={{ horizontal: "right", vertical: "top" }}
           anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
         >
+          <Box sx={{ px: 2, py: 1.5, borderBottom: `1px solid ${colors.outlineVariant}`, mb: 0.5 }}>
+            <Typography sx={{ fontFamily: "Inter", fontSize: "14px", fontWeight: "700", color: colors.onSurface }}>
+              {mongoUser ? mongoUser.userName : "Admin User"}
+            </Typography>
+            <Box sx={{ mt: 0.5 }}>
+              {isSuperAdmin ? (
+                <Box component="span" sx={{ bgcolor: "#FFE600", color: "#000000", px: 0.8, py: 0.2, borderRadius: "4px", fontSize: "10px", fontWeight: "800", fontFamily: "Inter" }}>
+                  SUPER ADMIN
+                </Box>
+              ) : (
+                <Box component="span" sx={{ bgcolor: "rgba(0, 108, 73, 0.2)", color: colors.secondary, px: 0.8, py: 0.2, borderRadius: "4px", fontSize: "10px", fontWeight: "800", fontFamily: "Inter" }}>
+                  ADMIN
+                </Box>
+              )}
+            </Box>
+          </Box>
           <MenuItem onClick={() => { handleProfileMenuClose(); navigate("/"); }} sx={{ fontFamily: "Inter", fontSize: "14px", py: 1, px: 2, borderRadius: "6px" }}>
             View Public Site
           </MenuItem>

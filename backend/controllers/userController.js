@@ -1,6 +1,7 @@
 const User = require('../models/userModel');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const admin = require('../config/firebaseAdmin');
 
 // Helper to initialize Razorpay dynamically if environment keys are present
 const getRazorpayInstance = () => {
@@ -71,11 +72,33 @@ const createUser = async (req, res, next) => {
 // @route PUT /books/:id
 const updateUser = async (req, res, next) => {
   try {
-    const { userName, phoneNumber, fatherName, mosque, imam, role, email, uid } = req.body;
+    const { userName, phoneNumber, fatherName, mosque, imam, role, email, uid, password } = req.body;
     
     const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
+    }
+
+    // If password or phoneNumber is updated, and it is a Firebase user
+    if (user.uid && (password || (phoneNumber !== undefined && phoneNumber !== user.phoneNumber))) {
+      if (admin.apps && admin.apps.length > 0) {
+        try {
+          const updateData = {};
+          if (password) updateData.password = password;
+          if (phoneNumber && phoneNumber !== user.phoneNumber) {
+            updateData.phoneNumber = phoneNumber.startsWith('+91') ? phoneNumber : `+91${phoneNumber}`;
+            updateData.email = `${phoneNumber}@jama-masjid.com`;
+          }
+          await admin.auth().updateUser(user.uid, updateData);
+          console.log(`Successfully updated Firebase credentials for user ${user.uid}`);
+          if (phoneNumber && phoneNumber !== user.phoneNumber) {
+            user.email = `${phoneNumber}@jama-masjid.com`;
+          }
+        } catch (fbError) {
+          console.error('Failed to update Firebase user:', fbError.message);
+          return res.status(400).json({ message: 'Failed to update user in Firebase: ' + fbError.message });
+        }
+      }
     }
 
     if (userName !== undefined) user.userName = userName;
@@ -103,8 +126,20 @@ const deleteUser = async (req, res, next) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // 1. Delete from Firebase Auth if UID exists and admin SDK is initialized
+    if (user.uid && admin.apps && admin.apps.length > 0) {
+      try {
+        await admin.auth().deleteUser(user.uid);
+        console.log(`Successfully deleted user ${user.uid} from Firebase Auth`);
+      } catch (fbError) {
+        console.error('Error deleting user from Firebase Auth:', fbError.message);
+        // If the user doesn't exist in Firebase anymore, we still want to proceed and delete them from MongoDB
+      }
+    }
+
+    // 2. Delete from MongoDB
     await user.deleteOne();
-    res.status(200).json({ success: true, message: 'User deleted successfully' });
+    res.status(200).json({ success: true, message: 'User deleted successfully from both Firebase and MongoDB' });
   } catch (error) {
     next(error);
   }
@@ -182,6 +217,14 @@ const registerUser = async (req, res, next) => {
         const savedAdmin = await emailExists.save();
         return res.status(200).json(savedAdmin);
       }
+      // Allow promoting pre-existing user if role is admin
+      if (role === 'admin') {
+        emailExists.role = 'admin';
+        if (uid) emailExists.uid = uid;
+        if (userName) emailExists.userName = userName;
+        const savedAdmin = await emailExists.save();
+        return res.status(200).json(savedAdmin);
+      }
       return res.status(400).json({ message: 'A user with this email already exists' });
     }
 
@@ -189,15 +232,16 @@ const registerUser = async (req, res, next) => {
     if (phoneNumber) {
       const phoneExists = await User.findOne({ phoneNumber });
       if (phoneExists) {
-        if (phoneExists.uid && phoneExists.uid !== uid) {
+        // If registering an administrator, allow updating the UID link
+        if (phoneExists.uid && phoneExists.uid !== uid && role !== 'admin') {
           return res.status(400).json({ message: 'This phone number is already registered. Please sign in.' });
         }
         // Link the existing user to this Firebase account
         phoneExists.uid = uid;
         phoneExists.email = email;
-        const isUserAdmin = isAdmin || phoneNumber === process.env.SUPER_ADMIN_PHONE;
+        const isUserAdmin = isAdmin || phoneNumber === process.env.SUPER_ADMIN_PHONE || role === 'admin';
         phoneExists.role = isUserAdmin ? 'admin' : (role || 'user');
-        if (isUserAdmin) {
+        if (isUserAdmin && role !== 'admin') {
           phoneExists.userName = process.env.SUPER_ADMIN_NAME;
         } else if (userName) {
           phoneExists.userName = userName;

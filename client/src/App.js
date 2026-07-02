@@ -30,6 +30,8 @@ const ShowUserForImamAdmin = lazy(() => import("./pages/admin/UserForImam/ShowUs
 const AddAmountForImam = lazy(() => import("./pages/admin/UserForImam/AddAmountForImam"));
 const UserDetails = lazy(() => import("./pages/users/UserDetails"));
 const AddUser = lazy(() => import("./pages/admin/AddUser"));
+const ManageAdmins = lazy(() => import("./pages/admin/ManageAdmins"));
+
 
 const FooterPlaceholder = () => {
   return <Footer />;
@@ -115,6 +117,7 @@ const App = () => {
             <Route path="addUser" element={<AddUser />} />
             <Route path="showUser" element={<ShowUser />} />
             <Route path="dashboard" element={<Dashboard />} />
+            <Route path="manage-admins" element={<ManageAdmins />} />
             <Route path="showUserForMosqueAdmin" element={<ShowUserForMosqueAdmin />} />
             <Route path="addAmount/:id" element={<AddAmount />} />
             <Route path="showUserForImamAdmin" element={<ShowUserForImamAdmin />} />
